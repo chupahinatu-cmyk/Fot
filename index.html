@@ -300,6 +300,35 @@ details.fxd[open] > summary { margin-bottom: 0; }
 .link-btn:focus-visible { outline: 2px solid var(--rub); outline-offset: 2px; border-radius: 4px; }
 .mem-note { font-size: 0.74rem; color: var(--fg-3); }
 .mem-note:empty { display: none; }
+
+/* currency blocks are a tool, styled apart from the report sections */
+details.fxd { background: color-mix(in srgb, var(--usd) 5%, var(--bg)); border: 1px dashed color-mix(in srgb, var(--usd) 45%, var(--line)); box-shadow: none; }
+details.fxd .as-name { font-size: 0.95rem; font-weight: 600; display: inline-flex; align-items: center; }
+details.fxd .as-sum { font-size: 0.95rem; color: var(--fg-2); font-weight: 600; }
+details.fxd .as-meta { padding-left: 46px; }
+.fx-badge { flex: none; width: 22px; height: 22px; border-radius: 50%; display: inline-grid; place-items: center; margin-right: 8px; font-size: 0.75rem; font-weight: 700; color: var(--usd); background: color-mix(in srgb, var(--usd) 14%, var(--surface)); border: 1px solid color-mix(in srgb, var(--usd) 40%, transparent); }
+details.fxd .rate-input, details.fxd #fx-rate { background: var(--surface); }
+details.fxd .btn.ghost { background: var(--surface); }
+
+/* notes sit under the checks line, as small print */
+.quiet-notes { display: grid; gap: 6px; margin-top: -8px; }
+.quiet-notes .note-list { font-size: 0.8rem; color: var(--fg-3); gap: 6px; }
+.quiet-notes .note-list b { color: var(--fg-2); font-weight: 500; }
+
+table.stmt .cur { margin-left: 1px; font-size: 0.85em; opacity: .7; }
+
+table.stmt td.n { padding-left: 0; padding-right: 3px; }
+table.stmt tr.grand td { font-size: 0.78rem; }
+
+/* share */
+.app-head .btn.small { white-space: nowrap; }
+.share-panel { border-style: dashed; }
+.share-pick { border: 0; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 16px; }
+.share-pick legend { margin-bottom: 6px; padding: 0; }
+.share-pick label { display: inline-flex; align-items: center; gap: 6px; font-size: 0.92rem; min-height: 32px; cursor: pointer; }
+.share-pick input { width: 18px; height: 18px; accent-color: var(--rub); }
+.share-pick label.off { color: var(--fg-3); cursor: default; }
+.share-warn { color: var(--warn-ink); }
 </style>
 
 </head>
@@ -312,7 +341,20 @@ details.fxd[open] > summary { margin-bottom: 0; }
         <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M11.3 2.3a1.5 1.5 0 0 1 2.1 2.1L5.6 12.2 2.5 13l.8-3.1 8-7.6Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
       </button>
     </div>
+    <button type="button" class="btn ghost small" id="share-open" aria-controls="share-panel" aria-expanded="false">
+      <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true" style="margin-right:6px;vertical-align:-2px"><path d="M8 10V2M5 5l3-3 3 3M3 8v5h10V8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Поделиться</button>
   </header>
+  <section class="panel share-panel" id="share-panel" hidden aria-labelledby="h-share">
+    <h2 id="h-share">Поделиться отчётом</h2>
+    <p class="sub" style="margin:0">Сохраню снимок в один файл: только цифры, которые сейчас на экране, без исходных Excel. Получатель откроет его в браузере, вкладки и разделы будут работать.</p>
+    <fieldset class="share-pick" id="share-pick"><legend class="eyebrow">Какие вкладки включить</legend></fieldset>
+    <p class="sub share-warn" id="share-names" hidden style="margin:0">Сейчас на вкладке «Люди» показаны ФИО, они попадут в снимок. Чтобы их не было, снимите галочку «Показывать ФИО».</p>
+    <div class="fx-row">
+      <button type="button" class="btn" id="share-go">Сохранить снимок</button>
+      <button type="button" class="btn ghost" id="share-cancel">Отмена</button>
+    </div>
+    <p class="sub" id="share-msg" style="margin:0;font-size:.8rem" hidden></p>
+  </section>
   <p class="sub" id="title-hint" hidden style="margin-top:-10px">Введите заголовок и нажмите Enter. Он сохранится в этом браузере.</p>
 
   <section class="drop" id="drop" aria-label="Загрузка файлов">
@@ -327,7 +369,7 @@ details.fxd[open] > summary { margin-bottom: 0; }
       <button type="button" class="link-btn" id="forget" hidden>Забыть файлы</button>
     </div>
     <div class="mem-note" id="mem-note"></div>
-    <div class="mem-note">Версия страницы от 01.10.2026, 16:55</div>
+    <div class="mem-note">Версия страницы от 01.10.2026, 17:32</div>
     <div class="err" id="err" hidden></div>
   </section>
 
@@ -369,8 +411,15 @@ details.fxd[open] > summary { margin-bottom: 0; }
       <div id="dirs"></div>
     </section>
 
+
+    <details class="panel asec" id="out-panel">
+      <summary><span class="as-name"><span class="chev" aria-hidden="true">▸</span>Доходы за пределами ЮФО</span><span class="as-sum" id="out-sum"></span><span class="as-meta" id="out-meta"></span></summary>
+      <p class="sub" id="out-sub" style="margin:0 0 4px"></p>
+      <ul class="out-list" id="out-list"></ul>
+    </details>
+
     <details class="panel asec fxd" id="fx-panel">
-      <summary><span class="as-name"><span class="chev" aria-hidden="true">▸</span>Валютная часть</span><span class="as-sum" id="fx-sum"></span><span class="as-meta" id="fx-meta"></span></summary>
+      <summary><span class="as-name"><span class="chev" aria-hidden="true">▸</span><span class="fx-badge" aria-hidden="true">$</span>Валютная часть</span><span class="as-sum" id="fx-sum"></span><span class="as-meta" id="fx-meta"></span></summary>
       <p class="sub" style="margin:0" id="fx-text"></p>
       <div>
         <div class="eyebrow">В рублях, в месяц</div>
@@ -387,20 +436,12 @@ details.fxd[open] > summary { margin-bottom: 0; }
       </div>
     </details>
 
-    <section class="panel" aria-labelledby="h-out" id="out-panel">
-      <div>
-        <h2 id="h-out">Доходы за пределами ЮФО</h2>
-        <p class="sub" id="out-sub"></p>
-      </div>
-      <ul class="out-list" id="out-list"></ul>
-    </section>
-
-    <section class="panel" aria-labelledby="h-notes" id="notes-panel">
-      <h2 id="h-notes">Примечания</h2>
-      <ol class="note-list" id="notes"></ol>
-    </section>
 
     <details class="checks" id="checks"></details>
+    <section class="quiet-notes" aria-labelledby="h-notes" id="notes-panel">
+      <div class="eyebrow" id="h-notes">Примечания</div>
+      <ol class="note-list" id="notes"></ol>
+    </section>
     <footer class="foot">
       <div>Суммы gross. СВ — страховые взносы. Расчёт ведётся по суммам из колонки «ФОТ в месяц, руб.», то есть по новым зарплатам, если они уже внесены в таблицу.</div>
       <div id="foot-src"></div>
@@ -426,7 +467,7 @@ details.fxd[open] > summary { margin-bottom: 0; }
     <div id="assets-body" class="tab" hidden>
       <div id="assets-main" class="tab"></div>
       <details class="panel asec fxd" id="as-fx-panel" hidden>
-        <summary><span class="as-name"><span class="chev" aria-hidden="true">▸</span>Валютная часть</span><span class="as-sum" id="as-fx-sum"></span><span class="as-meta" id="as-fx-meta"></span></summary>
+        <summary><span class="as-name"><span class="chev" aria-hidden="true">▸</span><span class="fx-badge" aria-hidden="true">$</span>Валютная часть</span><span class="as-sum" id="as-fx-sum"></span><span class="as-meta" id="as-fx-meta"></span></summary>
         <p class="sub" style="margin:0" id="as-fx-text"></p>
         <div>
           <div class="eyebrow">В рублях</div>
@@ -695,6 +736,8 @@ function render(d) {
     const totalOut = outs.reduce((a, o) => a + o.p.outside, 0);
     $("out-sub").textContent = `${outs.length} ${(n => { const x = n % 10, y = n % 100; return x === 1 && y !== 11 ? "сотрудник" : x >= 2 && x <= 4 && (y < 12 || y > 14) ? "сотрудника" : "сотрудников"; })(outs.length)}, вместе ${fmtRub(totalOut)} в месяц вне ЮФО, net.`;
     const pctTxt = v => v == null ? "—" : Math.round(v * 100) + "%";
+    $("out-sum").textContent = fmtRub(totalOut);
+    $("out-meta").textContent = $("out-sub").textContent.replace(/, вместе.*$/, "") + ", в месяц, net";
     $("out-list").innerHTML = outs.map(({ p, g }) => `<li>
       <div class="out-head"><span class="pos">${p.no != null ? `<span class="no" style="color:var(--fg-3);font-family:var(--font-num);font-size:.78rem;margin-right:6px">${p.no}</span>` : ""}${esc(p.pos)}${showNames && p.name ? `<span class="who" style="display:block;color:var(--fg-2);font-weight:400;font-size:.82rem">${esc(p.name)}</span>` : ""}</span><span class="out-dir">${esc(g.name)}</span></div>
       <div class="out-nums">
@@ -851,6 +894,30 @@ function parseStatement(g) {
   return { title, sub, tables, checks };
 }
 
+// "в млн руб." / "в млн ₽" → "в млн"
+const unitsShort = s => { const m = txt(s).match(/^в\s+(млн|млрд|тыс)/i); return m ? "в " + m[1].toLowerCase() : ""; };
+const pad2 = n => String(n).padStart(2, "0");
+// the reporting date: the latest "факт" date in the column heads, or the end of "N месяцев YYYY"
+function stmtDate(st) {
+  const heads = st.tables.length ? st.tables[0].heads : [];
+  let best = null;
+  heads.forEach(h => {
+    const all = (h.main + " " + h.small);
+    if (!/факт/i.test(all)) return;
+    const d = all.match(/(\d{2})\.(\d{2})\.(\d{4})/);
+    if (d) { const t = new Date(+d[3], +d[2] - 1, +d[1]); if (!best || t > best) best = t; return; }
+    const m = all.match(/(\d{1,2})\s*месяц\S*\s*(\d{4})/i);
+    if (m && +m[1] >= 1 && +m[1] <= 12) { const t = new Date(+m[2], +m[1], 0); if (!best || t > best) best = t; }
+  });
+  return best ? pad2(best.getDate()) + "." + pad2(best.getMonth() + 1) + "." + best.getFullYear() : "";
+}
+function stmtEyebrow(st) {
+  const parts = st.sub.join(" · ").split(/\s*·\s*/).map(s => s.trim()).filter(Boolean);
+  const units = parts.map(unitsShort).find(Boolean) || "";
+  const rest = parts.filter(p => !unitsShort(p));
+  const d = stmtDate(st);
+  return [d ? "на " + d : "", units, ...rest].filter(Boolean).join(" · ");
+}
 function stmtTableHtml(t) {
   const n = t.heads.length;
   let body = "", first = true, sec = "";
@@ -862,10 +929,10 @@ function stmtTableHtml(t) {
     const cls = r.kind === "item" ? `d${r.depth}${r.isGroup ? " grp" : ""}` : r.kind;
     const attrs = r.kind === "item" ? ` data-id="r${r.i}" data-sec="${sec}"${r.parent ? ` data-parent="r${r.parent.i}"` : ""}` : "";
     const lab = r.isGroup ? tg(false, r.label) : esc(r.label);
-    body += `<tr class="${cls}"${attrs}><td class="l">${lab}</td>${r.vals.map(v => `<td class="n">${f1(v)}</td>`).join("")}</tr>`;
+    body += `<tr class="${cls}"${attrs}><td class="l">${lab}</td>${r.vals.map(v => `<td class="n">${v == null ? "" : f1(v) + '<span class="cur">₽</span>'}</td>`).join("")}</tr>`;
   });
   const head = `<tr><th>${esc(t.labelHead)}</th>${t.heads.map(h => `<th>${esc(h.main)}${h.small ? `<small>${esc(h.small)}</small>` : ""}</th>`).join("")}</tr>`;
-  const lw = n >= 3 ? 46 : 52;
+  const lw = n >= 3 ? 38 : 48;
   const cg = `<colgroup><col style="width:${lw}%">${t.heads.map(() => `<col style="width:${((100 - lw) / n).toFixed(2)}%">`).join("")}</colgroup>`;
   return `<div class="stmt-wrap"><table class="stmt">${cg}<thead>${head}</thead><tbody>${body}</tbody></table></div>`;
 }
@@ -874,14 +941,14 @@ function renderStatement(key, st) {
   const body = $(key + "-body");
   $(key + "-empty").hidden = true; body.hidden = false;
   $(key + "-title").textContent = st.title ? st.title[0].toUpperCase() + st.title.slice(1) : $(key + "-title").textContent;
-  $(key + "-eyebrow").textContent = st.sub.join(" · ") || "данные из файла";
+  $(key + "-eyebrow").textContent = stmtEyebrow(st) || "данные из файла";
   const main = st.tables[0];
   const grand = main && main.rows.find(r => r.kind === "grand");
   let html = "";
   if (grand) {
     html += `<section class="hero-band" aria-label="${esc(grand.label)}">
-      <div class="eyebrow">${esc(grand.label)}, млн ₽</div>
-      <div class="hero-row">${main.heads.map((h, ci) => `<div class="cell"><div class="v">${f1(grand.vals[ci])}</div><div class="k">${esc(h.main)}${h.small ? ", " + esc(h.small) : ""}</div></div>`).join("")}</div>
+      <div class="eyebrow">${esc(grand.label)}</div>
+      <div class="hero-row">${main.heads.map((h, ci) => `<div class="cell"><div class="v">${grand.vals[ci] == null ? "—" : f1(grand.vals[ci]) + " ₽"}</div><div class="k">${esc(h.main)}${h.small ? ", " + esc(h.small) : ""}</div></div>`).join("")}</div>
     </section>`;
   }
   st.tables.forEach((t, ti) => {
@@ -1001,13 +1068,13 @@ function renderAssets(a) {
   const openIds = [...body.querySelectorAll("details[open]")].map(d => d.id);
   $("assets-title").textContent = a.title[0].toUpperCase() + a.title.slice(1).toLowerCase();
   const rateNow = a.rate ? "USD/RUB " + a.rate.toLocaleString("ru-RU", { maximumFractionDigits: 4, useGrouping: false }) + (a.manual ? " (вручную)" : "") : a.rateTxt;
-  $("assets-eyebrow").textContent = [fDate(a.date), rateNow, a.units].filter(Boolean).join(" · ") || "данные из файла";
+  $("assets-eyebrow").textContent = [a.date ? "на " + fDate(a.date) : "", unitsShort(a.units)].filter(Boolean).join(" · ") || "данные из файла";
   let html = "";
   if (a.grand.rub != null) {
     const liq = a.sections.find(s => /ликвид/i.test(s.title) && s.total && s.total.v != null);
-    const tiles = [[fInt(a.grand.rub), "млн ₽, все активы"]];
-    if (a.grand.usd != null) tiles.push([fUsd(a.grand.usd), "млн, за рубежом (WW)"]);
-    if (liq) tiles.push([fInt(liq.total.v), "млн ₽, " + liq.title.toLowerCase()]);
+    const tiles = [[fInt(a.grand.rub) + " ₽", "все активы"]];
+    if (a.grand.usd != null) tiles.push([fUsd(a.grand.usd), "за рубежом (WW)"]);
+    if (liq) tiles.push([fInt(liq.total.v) + " ₽", liq.title.toLowerCase()]);
     html += `<section class="hero-band"><div class="eyebrow">${esc(a.grand.label || "Итого активы")}</div>
     <div class="hero-row">${tiles.map(t => `<div class="cell"><div class="v">${t[0]}</div><div class="k">${esc(t[1])}</div></div>`).join("")}</div></section>`;
   }
@@ -1234,7 +1301,109 @@ const drop = $("drop");
 ["dragenter", "dragover"].forEach(t => document.addEventListener(t, e => { e.preventDefault(); drop.classList.add("over"); }));
 ["dragleave", "drop"].forEach(t => document.addEventListener(t, e => { e.preventDefault(); if (t === "drop" || e.target === document.documentElement) drop.classList.remove("over"); }));
 document.addEventListener("drop", e => { const f = e.dataTransfer && e.dataTransfer.files; if (f && f.length) loadFiles(f); });
-window.__app = { parse, build, parseStatement, parseAssets };
+/* ---------- share: a self-contained snapshot of what is on screen ---------- */
+// runs inside the saved file; it must not refer to anything outside itself
+function snapRuntime() {
+  document.documentElement.classList.remove("nojs");
+  const btns = [...document.querySelectorAll(".tabbar button")];
+  function show(t) {
+    document.querySelectorAll("section.tab[data-tab]").forEach(s => { s.hidden = s.dataset.tab !== t; });
+    btns.forEach(b => b.setAttribute("aria-selected", String(b.dataset.tab === t)));
+    window.scrollTo(0, 0);
+  }
+  btns.forEach(b => b.addEventListener("click", () => show(b.dataset.tab)));
+  if (btns.length) show((btns.find(b => b.getAttribute("aria-selected") === "true") || btns[0]).dataset.tab);
+  function applyVis(tbl) {
+    const open = {};
+    tbl.querySelectorAll("tr[data-id]").forEach(tr => { const b = tr.querySelector(".tg"); open[tr.dataset.id] = b ? b.getAttribute("aria-expanded") === "true" : true; });
+    tbl.querySelectorAll("tr[data-sec]").forEach(tr => {
+      let vis = !tr.dataset.sec || open[tr.dataset.sec] !== false, p = tr.dataset.parent;
+      while (vis && p) { if (open[p] === false) vis = false; const pr = tbl.querySelector('tr[data-id="' + p + '"]'); p = pr && pr.dataset.parent; }
+      tr.hidden = !vis;
+    });
+  }
+  document.addEventListener("click", e => {
+    const ex = e.target.closest(".expand-all");
+    if (ex) {
+      const panel = ex.closest(".panel"), on = ex.getAttribute("aria-pressed") !== "true";
+      panel.querySelectorAll("tr.grp .tg, tr.sec .tg").forEach(b => b.setAttribute("aria-expanded", String(on || b.closest("tr.sec") != null)));
+      ex.setAttribute("aria-pressed", String(on)); ex.textContent = on ? "Свернуть" : "Развернуть всё";
+      panel.querySelectorAll("table.stmt").forEach(applyVis); return;
+    }
+    const go = e.target.closest("[data-go]");
+    if (go) { const d = document.getElementById(go.dataset.go); if (d) { d.open = true; d.scrollIntoView({ block: "start" }); } return; }
+    const tr = e.target.closest("table.stmt tr.grp, table.stmt tr.sec");
+    if (!tr) return;
+    const b = tr.querySelector(".tg"); if (!b) return;
+    b.setAttribute("aria-expanded", String(b.getAttribute("aria-expanded") !== "true"));
+    applyVis(tr.closest("table"));
+  });
+}
+function buildSnapshot(keys) {
+  const root = document.documentElement.cloneNode(true);
+  const q = s => root.querySelectorAll(s);
+  q("script, #drop, #title-edit, #title-hint, #share-open, #share-panel, #names-wrap, .fx-form, .expand-all, link[rel='manifest'], link[rel='icon'], link[rel='apple-touch-icon']").forEach(e => e.remove());
+  ["fot", "assets", "cash", "pnl"].forEach(k => { if (!keys.includes(k)) { const s = root.querySelector("#tab-" + k), b = root.querySelector("#tb-" + k); if (s) s.remove(); if (b) b.remove(); } });
+  // tables open fully, so the file reads correctly even where scripts do not run
+  q("table.stmt tr[hidden]").forEach(tr => tr.removeAttribute("hidden"));
+  q("table.stmt .tg").forEach(b => b.setAttribute("aria-expanded", "true"));
+  // every chosen tab is visible until the script picks one; without scripts they stack
+  q("section.tab[data-tab]").forEach(s => s.removeAttribute("hidden"));
+  const first = keys.includes(current) ? current : keys[0];
+  q(".tabbar button").forEach(b => { b.setAttribute("aria-selected", String(b.dataset.tab === first)); b.classList.remove("has-data"); });
+  const inn = root.querySelector(".tabbar-in"); if (inn) inn.style.gridTemplateColumns = `repeat(${keys.length}, minmax(0,1fr))`;
+  if (keys.length < 2) { const tb = root.querySelector(".tabbar"); if (tb) tb.remove(); }
+  q("[contenteditable]").forEach(e => e.removeAttribute("contenteditable"));
+  const stamp = new Date().toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  const head = root.querySelector(".app-head");
+  if (head) head.insertAdjacentHTML("afterend", `<p class="eyebrow" style="margin:-8px 0 0">Снимок от ${stamp} · только для просмотра</p>`);
+  const t = root.querySelector("title"); if (t) t.textContent = ($("title").textContent || "ЮФО") + " · снимок " + stamp.slice(0, 10);
+  const hd = root.querySelector("head");
+  if (hd && !hd.querySelector("meta[charset]")) hd.insertAdjacentHTML("afterbegin", '<meta charset="utf-8">');
+  if (hd && !hd.querySelector('meta[name="viewport"]')) hd.insertAdjacentHTML("beforeend", '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">');
+  if (hd) hd.insertAdjacentHTML("beforeend", "<style>.nojs .tabbar{display:none}.nojs .wrap{padding-bottom:40px}</style>");
+  root.classList.add("nojs");
+  root.removeAttribute("data-theme");
+  const body = root.querySelector("body");
+  body.insertAdjacentHTML("beforeend", "<script>(" + snapRuntime.toString() + ")();<\/script>");
+  return "<!doctype html>\n" + root.outerHTML;
+}
+async function deliverFile(html, name) {
+  const file = new File([html], name, { type: "text/html" });
+  try {
+    if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: name }); return "shared"; }
+  } catch (e) { if (e && e.name === "AbortError") return "cancel"; }
+  try {
+    const url = URL.createObjectURL(file), a = document.createElement("a");
+    a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    return "downloaded";
+  } catch (e) { return "failed"; }
+}
+function openShare(on) {
+  $("share-panel").hidden = !on; $("share-open").setAttribute("aria-expanded", String(on)); $("share-msg").hidden = true;
+  if (!on) return;
+  const keys = Object.keys(LABELS);
+  $("share-pick").innerHTML = '<legend class="eyebrow">Какие вкладки включить</legend>' + keys.map(k => SRC[k]
+    ? `<label><input type="checkbox" value="${k}" checked> ${LABELS[k]}</label>`
+    : `<label class="off"><input type="checkbox" value="${k}" disabled> ${LABELS[k]} — нет данных</label>`).join("");
+  $("share-names").hidden = !($("names").checked && SRC.fot);
+  $("share-go").disabled = !keys.some(k => SRC[k]);
+}
+$("share-open").addEventListener("click", () => openShare($("share-panel").hidden));
+$("share-cancel").addEventListener("click", () => openShare(false));
+$("share-go").addEventListener("click", async () => {
+  const keys = [...$("share-pick").querySelectorAll("input:checked")].map(i => i.value);
+  const msg = $("share-msg"); msg.hidden = false;
+  if (!keys.length) { msg.textContent = "Отметьте хотя бы одну вкладку."; return; }
+  const d = new Date(), name = `${($("title").textContent || "ЮФО").replace(/[\\/:*?"<>|]+/g, "").trim() || "ЮФО"}_снимок_${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}.html`;
+  const res = await deliverFile(buildSnapshot(keys), name);
+  msg.textContent = res === "shared" ? "Готово." : res === "cancel" ? "Отменено." : res === "downloaded"
+    ? `Файл «${name}» сохранён в загрузки. Если он не появился, скачивание запрещено там, где открыта страница: это так в черновике на Claude, а на сайте на GitHub работает.`
+    : "Не получилось сохранить файл в этом браузере.";
+});
+
+window.__app = { parse, build, parseStatement, parseAssets, buildSnapshot };
 })();
 </script>
 
