@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#0f1114" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="ФОТ">
+<meta name="apple-mobile-web-app-title" content="ЮФО">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
@@ -416,7 +416,7 @@ function render(d) {
         <span class="sum">${p.rub == null ? "—" : fmtRub(p.rub)}${star}</span>${extra ? `<span class="extra">${extra}</span>` : ""}${p.note ? `<span class="note">*${d.notes.length > 1 ? p.note : ""} ${esc(p.comment)}</span>` : ""}</li>`;
     }).join("");
     const hasNote = g.rows.some(p => p.note);
-    return `<details class="dir"${gi === 0 ? " open" : ""}><summary>
+    return `<details class="dir"><summary>
         <div class="dir-top"><span class="dir-name"><span class="chev" aria-hidden="true">▸</span>${esc(g.name)}${hasNote ? ' <sup style="color:var(--usd)">*</sup>' : ""}</span><span class="dir-val">${fmtM(g.sum, 2)}</span></div>
         <div class="track">${segs}</div>
         <div class="dir-meta"><span>${g.n ? g.n + " " + plural(g.n) : "без разбивки"} · СВ ${fmtM(g.sv, 2)}</span><span>${(g.sum / (d.T || 1) * 100).toFixed(1).replace(".", ",")}%</span></div>
