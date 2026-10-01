@@ -346,8 +346,12 @@ table.stmt tr.grand td { font-size: 0.78rem; }
   </header>
   <section class="panel share-panel" id="share-panel" hidden aria-labelledby="h-share">
     <h2 id="h-share">Поделиться отчётом</h2>
-    <p class="sub" style="margin:0">Сохраню снимок в один файл: только цифры, которые сейчас на экране, без исходных Excel. Получатель откроет его в браузере, вкладки и разделы будут работать.</p>
+    <p class="sub" style="margin:0">Сохраню снимок дашбордов: только цифры, которые сейчас на экране, без исходных Excel. Получатель откроет его в браузере, вкладки и разделы будут работать.</p>
     <fieldset class="share-pick" id="share-pick"><legend class="eyebrow">Какие вкладки включить</legend></fieldset>
+    <fieldset class="share-pick" id="share-mode"><legend class="eyebrow">Как сохранить</legend>
+      <label><input type="radio" name="share-mode" value="one" checked> Один файл со всеми вкладками</label>
+      <label><input type="radio" name="share-mode" value="each"> Отдельный файл на каждую вкладку</label>
+    </fieldset>
     <p class="sub share-warn" id="share-names" hidden style="margin:0">Сейчас на вкладке «Люди» показаны ФИО, они попадут в снимок. Чтобы их не было, снимите галочку «Показывать ФИО».</p>
     <div class="fx-row">
       <button type="button" class="btn" id="share-go">Сохранить снимок</button>
@@ -369,7 +373,7 @@ table.stmt tr.grand td { font-size: 0.78rem; }
       <button type="button" class="link-btn" id="forget" hidden>Забыть файлы</button>
     </div>
     <div class="mem-note" id="mem-note"></div>
-    <div class="mem-note">Версия страницы от 01.10.2026, 17:32</div>
+    <div class="mem-note">Версия страницы от 01.10.2026, 17:39</div>
     <div class="err" id="err" hidden></div>
   </section>
 
@@ -1361,22 +1365,26 @@ function buildSnapshot(keys) {
   const hd = root.querySelector("head");
   if (hd && !hd.querySelector("meta[charset]")) hd.insertAdjacentHTML("afterbegin", '<meta charset="utf-8">');
   if (hd && !hd.querySelector('meta[name="viewport"]')) hd.insertAdjacentHTML("beforeend", '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">');
-  if (hd) hd.insertAdjacentHTML("beforeend", "<style>.nojs .tabbar{display:none}.nojs .wrap{padding-bottom:40px}</style>");
+  if (hd) hd.insertAdjacentHTML("beforeend", "<style>.nojs .tabbar{display:none}.nojs .wrap{padding-bottom:40px}.nojs section.tab[data-tab]+section.tab[data-tab]{margin-top:64px;padding-top:40px;border-top:2px solid var(--line)}</style>");
   root.classList.add("nojs");
   root.removeAttribute("data-theme");
   const body = root.querySelector("body");
   body.insertAdjacentHTML("beforeend", "<script>(" + snapRuntime.toString() + ")();<\/script>");
   return "<!doctype html>\n" + root.outerHTML;
 }
-async function deliverFile(html, name) {
-  const file = new File([html], name, { type: "text/html" });
+// list of {name, html}; shares them together where the device allows, otherwise downloads each
+async function deliverFiles(list) {
+  const files = list.map(x => new File([x.html], x.name, { type: "text/html" }));
   try {
-    if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: name }); return "shared"; }
+    if (navigator.canShare && navigator.canShare({ files })) { await navigator.share({ files, title: files.length > 1 ? "Снимки ЮФО" : files[0].name }); return "shared"; }
   } catch (e) { if (e && e.name === "AbortError") return "cancel"; }
   try {
-    const url = URL.createObjectURL(file), a = document.createElement("a");
-    a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    for (const f of files) {
+      const url = URL.createObjectURL(f), a = document.createElement("a");
+      a.href = url; a.download = f.name; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 8000);
+      await new Promise(r => setTimeout(r, 400));
+    }
     return "downloaded";
   } catch (e) { return "failed"; }
 }
@@ -1396,10 +1404,16 @@ $("share-go").addEventListener("click", async () => {
   const keys = [...$("share-pick").querySelectorAll("input:checked")].map(i => i.value);
   const msg = $("share-msg"); msg.hidden = false;
   if (!keys.length) { msg.textContent = "Отметьте хотя бы одну вкладку."; return; }
-  const d = new Date(), name = `${($("title").textContent || "ЮФО").replace(/[\\/:*?"<>|]+/g, "").trim() || "ЮФО"}_снимок_${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}.html`;
-  const res = await deliverFile(buildSnapshot(keys), name);
+  const d = new Date(), day = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const base = ($("title").textContent || "ЮФО").replace(/[\\/:*?"<>|]+/g, "").trim() || "ЮФО";
+  const mode = ($("share-mode").querySelector("input:checked") || {}).value || "one";
+  const list = mode === "each" && keys.length > 1
+    ? keys.map(k => ({ name: `${base}_${LABELS[k]}_снимок_${day}.html`, html: buildSnapshot([k]) }))
+    : [{ name: `${base}_снимок_${day}.html`, html: buildSnapshot(keys) }];
+  const res = await deliverFiles(list);
+  const names = list.map(x => "«" + x.name + "»").join(", ");
   msg.textContent = res === "shared" ? "Готово." : res === "cancel" ? "Отменено." : res === "downloaded"
-    ? `Файл «${name}» сохранён в загрузки. Если он не появился, скачивание запрещено там, где открыта страница: это так в черновике на Claude, а на сайте на GitHub работает.`
+    ? `${list.length > 1 ? "Файлы" : "Файл"} ${names} ${list.length > 1 ? "сохранены" : "сохранён"} в загрузки. Если их нет, скачивание запрещено там, где открыта страница: это так в черновике на Claude, а на сайте на GitHub работает. Браузер может спросить разрешение на скачивание нескольких файлов.`
     : "Не получилось сохранить файл в этом браузере.";
 });
 
