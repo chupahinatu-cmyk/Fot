@@ -330,13 +330,6 @@ table.stmt tr.grand td { font-size: 0.78rem; }
 .share-pick input { width: 18px; height: 18px; accent-color: var(--rub); }
 .share-pick label.off { color: var(--fg-3); cursor: default; }
 .share-warn { color: var(--warn-ink); }
-
-/* paste a copied file */
-.pick-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-.paste-zone { min-width: 150px; min-height: 36px; padding: 7px 12px; border-radius: 10px; border: 1px dashed var(--line); font-size: 0.82rem; color: transparent; caret-color: transparent; overflow: hidden; white-space: nowrap; max-width: 220px; cursor: text; position: relative; -webkit-user-select: text; user-select: text; }
-.paste-zone:empty::before { content: attr(data-ph); color: var(--fg-3); pointer-events: none; }
-.paste-zone:focus { outline: 2px solid var(--rub); outline-offset: 1px; border-color: transparent; }
-.paste-zone:focus:empty::before { content: "Удерживайте → «Вставить»"; }
 </style>
 
 </head>
@@ -372,10 +365,7 @@ table.stmt tr.grand td { font-size: 0.78rem; }
   <section class="drop" id="drop" aria-label="Загрузка файлов">
     <div class="drop-row">
       <div class="file-meta" id="file-meta">Файлы Excel обрабатываются только в этом браузере.</div>
-      <div class="pick-row">
-        <label class="btn ghost small" for="file" id="pick" tabindex="0" role="button">Загрузить файлы</label>
-        <div class="paste-zone" id="paste-zone" contenteditable="true" role="textbox" aria-label="Вставить файл из буфера обмена" inputmode="none" spellcheck="false" data-ph="или вставьте файл сюда"></div>
-      </div>
+      <label class="btn ghost small" for="file" id="pick" tabindex="0" role="button">Загрузить файлы</label>
       <input type="file" id="file" multiple accept=".xlsx,.xls,.xlsm,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel">
     </div>
     <ul class="status-list" id="loaded" aria-label="Загруженные отчёты"></ul>
@@ -384,7 +374,7 @@ table.stmt tr.grand td { font-size: 0.78rem; }
       <button type="button" class="link-btn" id="forget" hidden>Забыть отчёты</button>
     </div>
     <div class="mem-note" id="mem-note"></div>
-    <div class="mem-note">Версия страницы от 01.10.2026, 20:21</div>
+    <div class="mem-note">Версия страницы от 01.10.2026, 18:23</div>
     <div class="err" id="err" hidden></div>
   </section>
 
@@ -1311,30 +1301,6 @@ updateLoaded();
 restoreFiles();
 
 $("file").addEventListener("change", e => { loadFiles(e.target.files); e.target.value = ""; });
-// a file copied in Files, Finder or Explorer can be pasted: into the field on a phone, or anywhere with Ctrl/Cmd+V on a computer
-function filesFromClipboard(cd) {
-  const out = [];
-  if (!cd) return out;
-  if (cd.files && cd.files.length) out.push(...cd.files);
-  else if (cd.items) for (const it of cd.items) if (it.kind === "file") { const f = it.getAsFile(); if (f) out.push(f); }
-  return out;
-}
-const XLS_RX = /\.(xlsx|xlsm|xls)$/i;
-document.addEventListener("paste", e => {
-  const files = filesFromClipboard(e.clipboardData);
-  const zone = $("paste-zone");
-  if (e.target === zone || files.length) e.preventDefault();
-  zone.textContent = "";
-  if (files.length) {
-    const xls = files.filter(f => XLS_RX.test(f.name) || /sheet|excel/i.test(f.type));
-    if (xls.length) { loadFiles(xls); zone.blur(); }
-    else showErr("В буфере обмена не Excel-файл. Скопируйте сам файл .xlsx, например в «Файлах»: удерживайте файл → «Скопировать».");
-  } else if (e.target === zone) {
-    showErr("В буфере обмена нет файла. Скопируйте сам файл .xlsx (в «Файлах»: удерживайте файл → «Скопировать»), а не его текст или ссылку.");
-  }
-});
-$("paste-zone").addEventListener("input", e => { e.target.textContent = ""; });
-$("paste-zone").addEventListener("keydown", e => { if (!(e.metaKey || e.ctrlKey) && e.key.length === 1) e.preventDefault(); });
 document.querySelectorAll('label[for="file"]').forEach(l => l.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("file").click(); } }));
 const drop = $("drop");
 ["dragenter", "dragover"].forEach(t => document.addEventListener(t, e => { e.preventDefault(); drop.classList.add("over"); }));
