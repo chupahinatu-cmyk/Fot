@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ФОТ группы</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#f6f7f9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1114" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ФОТ">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+/* Layout: one column (phone first, centred on desktop). Upload card on top, then summary, checks, directions, currency, notes */
+:root {
+  --bg: #f6f7f9; --surface: #ffffff; --line: #e2e5ea; --grid: #eceef2;
+  --fg: #14171c; --fg-2: #4d5562; --fg-3: #7b8391;
+  --rub: #2a78d6; --usd: #eb6834; --pt: #1baf7a;
+  --warn-bg: #fff6e6; --warn-line: #f0c46b; --warn-ink: #7a4d00;
+  --ok-ink: #0b6b0b;
+  --font-ui: -apple-system, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+  --font-num: ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1114; --surface: #1b1e24; --line: #2c313a; --grid: #252a32;
+    --fg: #f1f3f6; --fg-2: #b9c0cb; --fg-3: #88909c;
+    --rub: #3987e5; --usd: #d95926; --pt: #199e70;
+    --warn-bg: #2a2214; --warn-line: #6b5420; --warn-ink: #f2cf8a; --ok-ink: #7fd67f;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1114; --surface: #1b1e24; --line: #2c313a; --grid: #252a32;
+  --fg: #f1f3f6; --fg-2: #b9c0cb; --fg-3: #88909c;
+  --rub: #3987e5; --usd: #d95926; --pt: #199e70;
+  --warn-bg: #2a2214; --warn-line: #6b5420; --warn-ink: #f2cf8a; --ok-ink: #7fd67f;
+  color-scheme: dark;
+}
+[hidden] { display: none !important; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { -webkit-text-size-adjust: 100%; }
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; }
+img { max-width: 100%; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-ui); font-size: 16px; line-height: 1.45; }
+.wrap { max-width: 640px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 48px; display: grid; gap: 18px; }
+h1 { font-size: 1.6rem; font-weight: 700; margin: 2px 0 0; letter-spacing: -0.01em; text-wrap: balance; }
+h2 { font-size: 1.08rem; font-weight: 600; margin: 0; }
+.sub { color: var(--fg-2); margin: 4px 0 0; font-size: 0.9rem; }
+.eyebrow { text-transform: uppercase; letter-spacing: 0.07em; font-size: 0.7rem; color: var(--fg-3); font-weight: 600; }
+.m { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+
+/* upload */
+.drop { border: 1.5px dashed var(--line); border-radius: 14px; background: var(--surface); padding: 18px 16px; display: grid; gap: 10px; transition: border-color .15s, background .15s; }
+.drop.over { border-color: var(--rub); background: color-mix(in srgb, var(--rub) 6%, var(--surface)); }
+.drop.loaded { border-style: solid; padding: 12px 16px; }
+.drop-row { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; justify-content: space-between; }
+.btn { appearance: none; border: 0; background: var(--rub); color: #fff; font: inherit; font-weight: 600; font-size: 0.95rem; padding: 10px 16px; border-radius: 10px; cursor: pointer; min-height: 44px; }
+.btn.ghost { background: none; color: var(--rub); border: 1px solid var(--line); }
+.btn:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+#file { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.file-meta { color: var(--fg-2); font-size: 0.85rem; min-width: 0; overflow-wrap: anywhere; }
+.err { color: #c43232; font-size: 0.9rem; }
+
+.empty { display: grid; gap: 10px; color: var(--fg-2); font-size: 0.92rem; }
+.empty ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+
+/* summary */
+.hero { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px 16px; display: grid; gap: 4px; }
+.hero .v { font-size: 2.3rem; font-weight: 700; line-height: 1.05; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.hero .v small { font-size: 1rem; font-weight: 500; color: var(--fg-2); }
+.hero .n { color: var(--fg-2); font-size: 0.88rem; }
+.kpis { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
+@media (min-width: 600px) { .kpis { grid-template-columns: repeat(4, minmax(0,1fr)); } }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: grid; gap: 2px; align-content: start; min-width: 0; }
+.kpi .v { font-size: 1.25rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.kpi .n { color: var(--fg-3); font-size: 0.78rem; }
+
+/* checks */
+details.checks { color: var(--fg-3); font-size: 0.8rem; border-top: 1px solid var(--line); }
+details.checks summary { list-style: none; padding: 10px 0; display: flex; gap: 6px; cursor: pointer; min-height: 40px; align-items: center; }
+details.checks summary::-webkit-details-marker { display: none; }
+details.checks summary:focus-visible { outline: 2px solid var(--rub); outline-offset: 2px; border-radius: 4px; }
+details.checks ul { margin: 0; padding: 0 0 8px 18px; display: grid; gap: 4px; }
+.chev { transition: transform .15s; display: inline-block; }
+details[open] > summary .chev { transform: rotate(90deg); }
+
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 12px; min-width: 0; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 0.8rem; color: var(--fg-2); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+/* directions */
+.dir { border-top: 1px solid var(--line); }
+.dir:first-of-type { border-top: 0; }
+.dir > summary { list-style: none; cursor: pointer; padding: 12px 0; display: grid; gap: 8px; }
+.dir > summary::-webkit-details-marker { display: none; }
+.dir > summary:focus-visible { outline: 2px solid var(--rub); outline-offset: 2px; border-radius: 6px; }
+.dir-top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.dir-name { font-weight: 600; font-size: 0.95rem; min-width: 0; }
+.dir-name .chev { color: var(--fg-3); font-size: 0.8rem; margin-right: 6px; }
+.dir-val { font-family: var(--font-num); font-size: 0.9rem; white-space: nowrap; }
+.track { display: flex; gap: 2px; height: 10px; }
+.seg { height: 100%; }
+.seg:last-child { border-radius: 0 4px 4px 0; }
+.dir-meta { color: var(--fg-3); font-size: 0.78rem; display: flex; justify-content: space-between; gap: 8px; }
+.people { list-style: none; margin: 8px 0 12px; padding: 0; display: grid; }
+.people li { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 2px 12px; padding: 9px 0; border-top: 1px solid var(--grid); }
+.people li.on { background: color-mix(in srgb, var(--rub) 8%, transparent); margin: 0 -8px; padding-inline: 8px; border-radius: 8px; }
+.people .pos { font-size: 0.92rem; min-width: 0; }
+.people .no { color: var(--fg-3); font-family: var(--font-num); font-size: 0.78rem; margin-right: 6px; }
+.people .sum { font-family: var(--font-num); font-size: 0.88rem; text-align: right; white-space: nowrap; }
+.people .sum sup, .note-list sup { color: var(--usd); font-weight: 700; }
+.people .extra { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 4px 6px; color: var(--fg-3); font-size: 0.78rem; }
+.people .note { grid-column: 1 / -1; font-size: 0.8rem; color: var(--fg-2); border-left: 2px solid var(--usd); padding: 2px 0 2px 8px; margin-top: 4px; }
+.info-line { margin: 0 0 12px; font-size: 0.82rem; color: var(--fg-2); }
+.title-row { display: flex; align-items: flex-start; gap: 8px; }
+#title { min-width: 0; overflow-wrap: anywhere; border-radius: 6px; }
+#title[contenteditable="true"] { outline: 2px solid var(--rub); outline-offset: 3px; }
+.icon-btn { flex: none; margin-top: 4px; width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--fg-2); display: grid; place-items: center; cursor: pointer; }
+.icon-btn:focus-visible { outline: 2px solid var(--rub); outline-offset: 2px; }
+.toggle { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: var(--fg-2); cursor: pointer; min-height: 32px; }
+.toggle input { width: 18px; height: 18px; accent-color: var(--rub); }
+.fx-form { display: grid; gap: 6px; }
+.fx-row { display: flex; gap: 8px; flex-wrap: wrap; }
+#fx-rate { flex: 1 1 120px; min-width: 0; font: inherit; font-family: var(--font-num); font-size: 1.05rem; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); min-height: 44px; }
+#fx-rate:focus { outline: 2px solid var(--rub); outline-offset: 1px; }
+#fx-rate.bad { border-color: #c43232; }
+.fx-form a { color: var(--rub); }
+.people .who { display: block; color: var(--fg-2); font-size: 0.82rem; }
+.out-list { list-style: none; margin: 0; padding: 0; display: grid; }
+.out-list li { display: grid; gap: 8px; padding: 12px 0; border-top: 1px solid var(--grid); }
+.out-list li:first-child { border-top: 0; padding-top: 0; }
+.out-head { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.out-head .pos { font-weight: 600; font-size: 0.95rem; min-width: 0; }
+.out-head .out-dir { color: var(--fg-3); font-size: 0.8rem; white-space: nowrap; }
+.out-nums { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px 12px; }
+@media (min-width: 520px) { .out-nums { grid-template-columns: repeat(4, minmax(0,1fr)); } }
+.out-nums div { display: grid; gap: 1px; min-width: 0; }
+.out-nums .k { font-size: 0.72rem; color: var(--fg-3); }
+.out-nums .v { font-family: var(--font-num); font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+.chip { display: inline-block; font-size: 0.72rem; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--fg-2); }
+.chip.usd { border-color: var(--usd); } .chip.pt { border-color: var(--pt); }
+
+.fx-big { font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.fx-delta { color: var(--fg-2); font-size: 0.88rem; font-variant-numeric: tabular-nums; min-height: 1.3em; }
+
+.note-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; font-size: 0.88rem; color: var(--fg-2); }
+.note-list b { color: var(--fg); font-weight: 600; }
+.foot { color: var(--fg-3); font-size: 0.78rem; display: grid; gap: 4px; }
+@media (prefers-reduced-motion: reduce) { .chev, .drop { transition: none; } }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow" id="eyebrow">ФОТ · загрузите Excel</div>
+    <div class="title-row">
+      <h1 id="title" spellcheck="false">ФОТ группы компаний</h1>
+      <button type="button" class="icon-btn" id="title-edit" aria-label="Изменить заголовок" title="Изменить заголовок">
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M11.3 2.3a1.5 1.5 0 0 1 2.1 2.1L5.6 12.2 2.5 13l.8-3.1 8-7.6Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+    <p class="sub" id="title-hint" hidden>Введите заголовок и нажмите Enter. Он сохранится в этом браузере.</p>
+  </header>
+
+  <section class="drop" id="drop" aria-label="Загрузка файла">
+    <div class="drop-row">
+      <div class="file-meta" id="file-meta">Перетащите сюда файл Excel или выберите его. Файл обрабатывается только в вашем браузере и никуда не отправляется.</div>
+      <label class="btn" for="file" id="pick" tabindex="0" role="button">Выбрать файл</label>
+      <input type="file" id="file" accept=".xlsx,.xls,.xlsm,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel">
+    </div>
+    <div class="err" id="err" hidden></div>
+    <label class="toggle" id="names-wrap" hidden><input type="checkbox" id="names"> Показывать ФИО из файла</label>
+  </section>
+
+  <section class="panel empty" id="empty">
+    <h2>Что появится после загрузки</h2>
+    <ul>
+      <li>ФОТ в месяц и в год, страховые взносы, валютная часть, медиана зарплаты.</li>
+      <li>Направления по размеру ФОТ, внутри каждого — шкала зарплат и список позиций.</li>
+      <li>Текст из колонки «Доп. комментарии» — под звёздочкой у суммы и в примечаниях внизу.</li>
+      <li>Проверка: совпадают ли суммы строк с итогами направлений и подытогом в файле.</li>
+    </ul>
+    <p class="sub" style="margin:0">Имена из колонки «Имя» на странице не показываются.</p>
+  </section>
+
+  <div id="report" hidden style="display:grid;gap:18px">
+    <section class="hero">
+      <div class="eyebrow">ФОТ в месяц</div>
+      <div class="v" id="hero-v"></div>
+      <div class="n" id="hero-n"></div>
+    </section>
+    <section class="kpis" id="kpis" aria-label="Ключевые цифры"></section>
+
+    <section class="panel" aria-labelledby="h-dir">
+      <div>
+        <h2 id="h-dir">По направлениям</h2>
+        <p class="sub">Нажмите на направление, чтобы увидеть позиции.</p>
+      </div>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--rub)"></i>Рубли</span>
+        <span><i class="sw" style="background:var(--usd)"></i>Доллары</span>
+        <span><i class="sw" style="background:var(--pt)"></i>Из них за счёт ПТ</span>
+      </div>
+      <div id="dirs"></div>
+    </section>
+
+    <section class="panel" aria-labelledby="h-fx" id="fx-panel">
+      <h2 id="h-fx">Валютная часть</h2>
+      <p class="sub" style="margin:0" id="fx-text"></p>
+      <div>
+        <div class="eyebrow">В рублях, в месяц</div>
+        <div class="fx-big" id="fx-rub"></div>
+        <div class="fx-delta" id="fx-delta"></div>
+      </div>
+      <div class="fx-form">
+        <label for="fx-rate" class="eyebrow">Курс, ₽ за $</label>
+        <div class="fx-row">
+          <input type="text" inputmode="decimal" id="fx-rate" autocomplete="off">
+          <button type="button" class="btn ghost" id="fx-reset">Курс из файла</button>
+        </div>
+        <p class="sub" style="margin:0;font-size:.8rem">Новый курс пересчитывает все суммы на странице. Актуальный курс: <a href="https://www.cbr.ru/currency_base/daily/" target="_blank" rel="noopener">сайт ЦБ РФ</a>.</p>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="h-out" id="out-panel">
+      <div>
+        <h2 id="h-out">Доходы за пределами ЮФО</h2>
+        <p class="sub" id="out-sub"></p>
+      </div>
+      <ul class="out-list" id="out-list"></ul>
+    </section>
+
+    <section class="panel" aria-labelledby="h-notes" id="notes-panel">
+      <h2 id="h-notes">Примечания</h2>
+      <ol class="note-list" id="notes"></ol>
+    </section>
+
+    <details class="checks" id="checks"></details>
+    <footer class="foot">
+      <div>Суммы gross. СВ — страховые взносы. Расчёт ведётся по суммам из колонки «ФОТ в месяц, руб.», то есть по новым зарплатам, если они уже внесены в таблицу.</div>
+      <div id="foot-src"></div>
+    </footer>
+  </div>
+</div>
+
+<script src="xlsx.full.min.js"></script>
+<script>
+(function () {
+const $ = id => document.getElementById(id);
+const fmtRub = v => Math.round(v).toLocaleString("ru-RU") + " ₽";
+const fmtM = (v, d = 2) => (v / 1e6).toLocaleString("ru-RU", { minimumFractionDigits: d, maximumFractionDigits: d }) + " млн ₽";
+const fmtK = v => v >= 1e6 ? (v / 1e6).toLocaleString("ru-RU", { maximumFractionDigits: 2 }) + " млн" : Math.round(v / 1000).toLocaleString("ru-RU") + " тыс.";
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const plural = n => { const a = n % 10, b = n % 100; return a === 1 && b !== 11 ? "позиция" : a >= 2 && a <= 4 && (b < 12 || b > 14) ? "позиции" : "позиций"; };
+const num = v => typeof v === "number" && isFinite(v) ? v : (typeof v === "string" && /^[\s\d.,-]+$/.test(v) && v.trim() ? parseFloat(v.replace(/\s/g, "").replace(",", ".")) : null);
+const txt = v => v == null ? "" : String(v).trim();
+
+/* ---------- parsing ---------- */
+const COLS = {
+  no: /^№/, name: /^имя/i, pos: /должност/i, rub: /месяц.*руб/i, usd: /usd|долл/i, year: /в год/i,
+  svm: /св\s*ср|св.*мес/i, svy: /св\s*год/i, out: /пределами/i, emp: /занятост/i, inc: /доходы в юфо/i, com: /коммент/i
+};
+function parse(rows) {
+  let hr = rows.findIndex(r => r && r.some(c => COLS.pos.test(txt(c))));
+  if (hr < 0) throw new Error("Не нашла строку заголовков с колонкой «Должность». Проверьте, что это та же таблица и заголовки на месте.");
+  const head = rows[hr].map(txt), col = {};
+  for (const k in COLS) { const i = head.findIndex(h => COLS[k].test(h) && !(k === "usd" && /руб/i.test(h))); if (i >= 0) col[k] = i; }
+  if (col.rub == null) throw new Error("Не нашла колонку «ФОТ в месяц, руб.».");
+  const labelCol = col.name != null ? col.name : (col.pos - 1);
+  const get = (r, k) => col[k] == null ? null : r[col[k]];
+  const groups = [], out = { groups, rate: null, subtotal: null, total: null, ptTotal: null, namesFilled: 0, warnings: [] };
+  let g = null, last = null, done = false;
+  for (let i = hr + 1; i < rows.length; i++) {
+    const r = rows[i] || [];
+    const label = txt(r[labelCol]), pos = txt(get(r, "pos")), no = num(get(r, "no"));
+    const rub = num(get(r, "rub"));
+    const rowText = r.map(txt).join(" ");
+    if (/курс/i.test(rowText) && /доллар/i.test(rowText)) {
+      const v = r.map(num).find(x => x != null && x > 1 && x < 1000); if (v) out.rate = v; continue;
+    }
+    if (/^подытог/i.test(label)) { out.subtotal = rub; done = true; continue; }
+    if (/^итого/i.test(label)) { out.total = rub; done = true; continue; }
+    if (/за сч[её]т пт/i.test(label) && no == null && !pos) { out.ptTotal = rub; continue; }
+    if (done) continue;
+    if (/за сч[её]т пт/i.test(pos) && no == null) { if (last && rub) last.pt = (last.pt || 0) + rub; continue; }
+    if (label && no == null && !pos && rub != null) { g = { name: label, fileTotal: rub, rows: [] }; groups.push(g); last = null; continue; }
+    if (no != null || pos) {
+      if (!g) { g = { name: "Без направления", fileTotal: null, rows: [] }; groups.push(g); }
+      if (col.name != null && txt(r[col.name])) out.namesFilled++;
+      const usd = num(get(r, "usd"));
+      const svm = num(get(r, "svm")), svy = num(get(r, "svy"));
+      const o = txt(get(r, "out")), outN = num(get(r, "out"));
+      const p = {
+        no, pos, info: !pos, rub, rubFile: rub, name: col.name != null ? txt(r[col.name]) : "", usd: usd || 0, year: num(get(r, "year")),
+        sv: svm != null ? svm : (svy != null ? svy / 12 : null),
+        outside: outN, emp: num(get(r, "emp")), inc: num(get(r, "inc")),
+        comment: txt(get(r, "com")), pt: 0
+      };
+      g.rows.push(p); last = p;
+    }
+  }
+  if (!groups.length) throw new Error("Не нашла ни одного направления. Названия направлений должны стоять в колонке «Имя» без номера и должности.");
+  return out;
+}
+
+/* ---------- model ---------- */
+function agg(d) {
+  d.groups.forEach(g => {
+    g.sum = 0; g.usdRub = 0; g.pt = 0; g.sv = 0; g.n = 0; g.infoSum = 0; g.infoPt = 0;
+    g.rows.forEach(p => {
+      if (p.info) { g.sum += p.rub || 0; g.sv += p.sv || 0; g.pt += p.pt || 0; g.infoSum += p.rub || 0; g.infoPt += p.pt || 0; return; }
+      if (p.rub == null) return;
+      g.n++; g.sum += p.rub; g.sv += p.sv || 0; g.pt += p.pt || 0;
+      if (p.usd) g.usdRub += p.rub;
+    });
+  });
+  d.T = d.groups.reduce((s, g) => s + g.sum, 0);
+  d.SV = d.groups.reduce((s, g) => s + g.sv, 0);
+  d.PT = d.groups.reduce((s, g) => s + g.pt, 0);
+  d.USD = d.groups.reduce((s, g) => s + g.rows.reduce((a, p) => a + (p.rub != null ? p.usd : 0), 0), 0);
+  d.USD_RUB = d.groups.reduce((s, g) => s + g.usdRub, 0);
+  d.usdPeople = d.groups.flatMap(g => g.rows.filter(p => p.usd && p.rub != null));
+  if (!d.rate && d.usdPeople.length) d.rate = d.usdPeople[0].rub / d.usdPeople[0].usd;
+  const sal = d.groups.flatMap(g => g.rows.filter(p => p.rub != null && !p.info).map(p => p.rub)).sort((a, b) => a - b);
+  d.count = sal.length;
+  d.med = !sal.length ? 0 : sal.length % 2 ? sal[(sal.length - 1) / 2] : (sal[sal.length / 2 - 1] + sal[sal.length / 2]) / 2;
+  d.max = sal[sal.length - 1] || 0;
+}
+function build(d) {
+  agg(d);
+  d.fileRate = d.rate;
+  // notes: one per distinct comment text
+  const notes = [];
+  d.groups.forEach(g => g.rows.forEach(p => {
+    if (!p.comment || p.info) return;
+    let n = notes.find(x => x.text === p.comment);
+    if (!n) { n = { text: p.comment, who: [] }; notes.push(n); }
+    n.who.push(p); p.note = notes.indexOf(n) + 1;
+  }));
+  d.notes = notes;
+  // checks
+  const c = [];
+  const near = (a, b) => Math.abs(a - b) < 1;
+  d.groups.forEach(g => {
+    if (g.fileTotal != null && !near(g.fileTotal, g.sum))
+      c.push(`«${g.name}»: итог направления в файле ${fmtRub(g.fileTotal)}, а сумма его строк ${fmtRub(g.sum)}.`);
+    g.rows.filter(p => p.rub == null && !p.info).forEach(p => c.push(`«${g.name}»: у позиции ${p.no ? "№ " + p.no + " " : ""}«${p.pos}» не указана сумма, в расчёт она не вошла.`));
+  });
+  if (d.subtotal != null && !near(d.subtotal, d.T)) c.push(`Подытог в файле ${fmtRub(d.subtotal)}, а сумма направлений ${fmtRub(d.T)}.`);
+  if (d.total != null && d.subtotal != null && !near(d.total, d.subtotal)) c.push(`ИТОГО в файле ${fmtRub(d.total)} не совпадает с подытогом ${fmtRub(d.subtotal)}.`);
+  if (d.ptTotal != null && !near(d.ptTotal, d.PT)) c.push(`«Из них за счёт ПТ» в файле ${fmtRub(d.ptTotal)}, а по строкам ${fmtRub(d.PT)}.`);
+  if (false) c.push(`В колонке «Имя» заполнено ${d.namesFilled} ${(n => { const a = n % 10, b = n % 100; return a === 1 && b !== 11 ? "значение" : a >= 2 && a <= 4 && (b < 12 || b > 14) ? "значения" : "значений"; })(d.namesFilled)}. На странице имена не показываются, но они остаются в самом файле.`);
+  d.checks = c;
+  return d;
+}
+
+/* ---------- rate ---------- */
+const store = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  set(k, v) { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} } };
+function applyRate(d, r) {
+  d.rate = r;
+  d.manual = d.fileRate ? Math.abs(r - d.fileRate) > 1e-9 : true;
+  d.groups.forEach(g => g.rows.forEach(p => { if (p.usd && p.rubFile != null) p.rub = p.usd * r; }));
+  agg(d); d.rate = r;
+}
+const parseRate = v => { const x = parseFloat(String(v).replace(/\s/g, "").replace(",", ".")); return isFinite(x) && x > 1 && x < 1000 ? x : null; };
+
+/* ---------- render ---------- */
+const colorOf = t => t === "usd" ? "var(--usd)" : t === "pt" ? "var(--pt)" : "var(--rub)";
+let D = null;
+function render(d) {
+  D = d;
+  $("empty").hidden = true; $("report").hidden = false;
+  $("eyebrow").textContent = "ФОТ · " + (d.manual ? "курс " + d.rate.toLocaleString("ru-RU", { maximumFractionDigits: 4 }) + " ₽/$ введён вручную" : (d.rateLabel || "данные из файла"));
+  const showNames = $("names").checked;
+  $("hero-v").innerHTML = (d.T / 1e6).toLocaleString("ru-RU", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " <small>млн ₽</small>";
+  $("hero-n").textContent = `В расчёте ${d.count} ${plural(d.count)}` + (d.PT ? `. За счёт ПТ: ${fmtM(d.PT, 2)}` : "") + (d.notes.length ? ". Суммы со звёздочкой уже учитывают будущие изменения" : "") + ".";
+  const k = [
+    ["ФОТ в год", fmtM(d.T * 12, 0)],
+    ["Страх. взносы", fmtM(d.SV, 1), "в месяц"],
+    ["Валюта", d.USD ? "$" + Math.round(d.USD).toLocaleString("ru-RU") : "нет", d.USD ? "≈ " + Math.round(d.USD_RUB / d.T * 100) + "% ФОТ" : ""],
+    ["Медиана", fmtK(d.med) + " ₽", "в месяц"]
+  ];
+  $("kpis").innerHTML = k.map(x => `<div class="kpi"><div class="eyebrow">${x[0]}</div><div class="v">${x[1]}</div>${x[2] ? `<div class="n">${x[2]}</div>` : ""}</div>`).join("");
+
+  const ch = $("checks");
+  ch.open = false;
+  ch.innerHTML = d.checks.length
+    ? `<summary><span class="chev" aria-hidden="true">▸</span><span>Проверка файла: замечаний ${d.checks.length}</span></summary><ul>${d.checks.map(x => `<li>${esc(x)}</li>`).join("")}</ul>`
+    : `<summary><span>Проверка файла: суммы строк сходятся с итогами</span></summary>`;
+
+  // directions
+  const sorted = [...d.groups].sort((a, b) => b.sum - a.sum);
+  const maxT = Math.max(1, sorted[0].sum);
+  $("dirs").innerHTML = sorted.map((g, gi) => {
+    const rubOnly = g.sum - g.usdRub - g.pt;
+    const segs = [["rub", rubOnly], ["pt", g.pt], ["usd", g.usdRub]].filter(s => s[1] > 0)
+      .map(s => `<div class="seg" style="width:${s[1] / maxT * 100}%;background:${colorOf(s[0])}"></div>`).join("");
+    const list = g.rows.filter(p => !p.info).map((p, ri) => {
+      let extra = "";
+      if (p.sv) extra += `<span>СВ ${fmtRub(p.sv)}</span>`;
+      if (p.usd) extra += `<span class="chip usd">$${Math.round(p.usd).toLocaleString("ru-RU")}</span>`;
+      if (p.pt) extra += `<span class="chip pt">из них ${fmtRub(p.pt)} за счёт ПТ</span>`;
+      if (p.outside) extra += `<span class="chip">вне ЮФО ${fmtK(p.outside)} ₽ net${p.emp != null ? " · занятость " + Math.round(p.emp * 100) + "%" : ""}${p.inc != null ? " · доход " + Math.round(p.inc * 100) + "%" : ""}</span>`;
+      if (p.rub == null) extra += `<span>сумма не указана</span>`;
+      const star = p.note ? `<sup>*${d.notes.length > 1 ? p.note : ""}</sup>` : "";
+      return `<li id="p-${gi}-${ri}"><span class="pos">${p.no != null ? `<span class="no">${p.no}</span>` : ""}${esc(p.pos)}${showNames && p.name ? `<span class="who">${esc(p.name)}</span>` : ""}</span>
+        <span class="sum">${p.rub == null ? "—" : fmtRub(p.rub)}${star}</span>${extra ? `<span class="extra">${extra}</span>` : ""}${p.note ? `<span class="note">*${d.notes.length > 1 ? p.note : ""} ${esc(p.comment)}</span>` : ""}</li>`;
+    }).join("");
+    const hasNote = g.rows.some(p => p.note);
+    return `<details class="dir"${gi === 0 ? " open" : ""}><summary>
+        <div class="dir-top"><span class="dir-name"><span class="chev" aria-hidden="true">▸</span>${esc(g.name)}${hasNote ? ' <sup style="color:var(--usd)">*</sup>' : ""}</span><span class="dir-val">${fmtM(g.sum, 2)}</span></div>
+        <div class="track">${segs}</div>
+        <div class="dir-meta"><span>${g.n ? g.n + " " + plural(g.n) : "без разбивки"} · СВ ${fmtM(g.sv, 2)}</span><span>${(g.sum / (d.T || 1) * 100).toFixed(1).replace(".", ",")}%</span></div>
+      </summary>
+      ${list ? `<ul class="people">${list}</ul>` : ""}${g.infoSum ? `<p class="info-line">${g.n ? "Ещё " : ""}${fmtRub(g.infoSum)} без разбивки по должностям${g.infoPt ? (g.infoPt >= g.infoSum - 1 ? ", полностью за счёт ПТ" : `, из них ${fmtRub(g.infoPt)} за счёт ПТ`) : ""}.</p>` : ""}</details>`;
+  }).join("");
+
+  // currency
+  $("fx-panel").hidden = !d.USD;
+  if (d.USD) {
+    const names = {}; d.usdPeople.forEach(p => names[p.pos] = (names[p.pos] || 0) + 1);
+    const who = Object.entries(names).map(([n, c]) => c > 1 ? `${n.toLowerCase()} × ${c}` : n.toLowerCase()).join(", ");
+    $("fx-text").innerHTML = `${esc(who[0].toUpperCase() + who.slice(1))}: <b>$${Math.round(d.USD).toLocaleString("ru-RU")} в месяц</b>, ≈${Math.round(d.USD_RUB / d.T * 100)}% всего ФОТ.`;
+    const inp = $("fx-rate");
+    if (document.activeElement !== inp) { inp.value = d.rate.toLocaleString("ru-RU", { maximumFractionDigits: 4, useGrouping: false }); inp.classList.remove("bad"); }
+    $("fx-rub").textContent = fmtM(d.USD_RUB, 2);
+    const diff = d.fileRate ? d.USD * (d.rate - d.fileRate) : 0;
+    $("fx-delta").textContent = !d.manual ? "по курсу из файла" + (d.rateLabel && d.rateLabel !== "данные из файла" ? " " + d.rateLabel : "")
+      : "к курсу из файла (" + d.fileRate.toLocaleString("ru-RU", { maximumFractionDigits: 4 }) + "): " + (diff >= 0 ? "+" : "−") + fmtK(Math.abs(diff)) + " ₽ в месяц";
+    $("fx-reset").hidden = !d.manual || !d.fileRate;
+  }
+
+  // income outside ЮФО
+  const outs = d.groups.flatMap(g => g.rows.filter(p => p.outside && !p.info).map(p => ({ p, g })));
+  $("out-panel").hidden = !outs.length;
+  if (outs.length) {
+    const totalOut = outs.reduce((a, o) => a + o.p.outside, 0);
+    $("out-sub").textContent = `${outs.length} ${(n => { const x = n % 10, y = n % 100; return x === 1 && y !== 11 ? "сотрудник" : x >= 2 && x <= 4 && (y < 12 || y > 14) ? "сотрудника" : "сотрудников"; })(outs.length)}, вместе ${fmtRub(totalOut)} в месяц вне ЮФО, net.`;
+    const pctTxt = v => v == null ? "—" : Math.round(v * 100) + "%";
+    $("out-list").innerHTML = outs.map(({ p, g }) => `<li>
+      <div class="out-head"><span class="pos">${p.no != null ? `<span class="no" style="color:var(--fg-3);font-family:var(--font-num);font-size:.78rem;margin-right:6px">${p.no}</span>` : ""}${esc(p.pos)}${showNames && p.name ? `<span class="who" style="display:block;color:var(--fg-2);font-weight:400;font-size:.82rem">${esc(p.name)}</span>` : ""}</span><span class="out-dir">${esc(g.name)}</span></div>
+      <div class="out-nums">
+        <div><span class="k">ФОТ в ЮФО, gross</span><span class="v">${p.rub == null ? "—" : fmtRub(p.rub)}</span></div>
+        <div><span class="k">Вне ЮФО, net</span><span class="v">${fmtRub(p.outside)}</span></div>
+        <div><span class="k">Занятость в ЮФО</span><span class="v">${pctTxt(p.emp)}</span></div>
+        <div><span class="k">Доходы в ЮФО</span><span class="v">${pctTxt(p.inc)}</span></div>
+      </div></li>`).join("");
+  }
+
+  // notes
+  $("notes-panel").hidden = !d.notes.length;
+  $("notes").innerHTML = d.notes.map((n, i) => {
+    const who = n.who.map(p => (p.no != null ? "№ " + p.no + " " : "") + p.pos.toLowerCase() + (showNames && p.name ? " (" + p.name + ")" : "")).join(", ");
+    return `<li><sup>*${d.notes.length > 1 ? i + 1 : ""}</sup> <b>${esc(who[0].toUpperCase() + who.slice(1))}.</b> ${esc(n.text)}</li>`;
+  }).join("");
+  $("foot-src").textContent = `Источник: ${d.fileName}` + (d.rate ? `, курс ${d.rate.toLocaleString("ru-RU", { maximumFractionDigits: 4 })} ₽/$` + (d.manual ? " (введён вручную)" : "") : "") + ".";
+}
+function setRate(r, save) {
+  if (!D) return;
+  applyRate(D, r); render(D);
+  if (save) store.set("fot-rate", D.manual ? String(r) : null);
+}
+$("fx-rate").addEventListener("input", e => {
+  const r = parseRate(e.target.value);
+  e.target.classList.toggle("bad", r == null && e.target.value.trim() !== "");
+  if (r != null) setRate(r, true);
+});
+$("fx-rate").addEventListener("blur", () => { if (D) render(D); });
+$("fx-reset").addEventListener("click", () => { if (D && D.fileRate) { setRate(D.fileRate, true); $("fx-rate").value = D.fileRate.toLocaleString("ru-RU", { maximumFractionDigits: 4, useGrouping: false }); } });
+$("names").addEventListener("change", () => { if (D) render(D); });
+
+/* ---------- title ---------- */
+const DEF_TITLE = "ФОТ группы компаний";
+function setTitle(t) { $("title").textContent = t; document.title = t; }
+setTitle(store.get("fot-title") || DEF_TITLE);
+function startEdit() {
+  const h = $("title"); h.contentEditable = "true"; $("title-hint").hidden = false; h.focus();
+  const rg = document.createRange(); rg.selectNodeContents(h); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(rg);
+}
+function endEdit(keep) {
+  const h = $("title"); if (h.contentEditable !== "true") return;
+  h.contentEditable = "false"; $("title-hint").hidden = true;
+  const t = keep ? h.textContent.replace(/\s+/g, " ").trim() : "";
+  const v = t || (keep ? DEF_TITLE : (store.get("fot-title") || DEF_TITLE));
+  setTitle(v); if (keep) store.set("fot-title", v === DEF_TITLE ? null : v);
+}
+$("title-edit").addEventListener("click", () => $("title").contentEditable === "true" ? endEdit(true) : startEdit());
+$("title").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); endEdit(true); } if (e.key === "Escape") endEdit(false); });
+$("title").addEventListener("blur", () => endEdit(true));
+
+/* ---------- file loading ---------- */
+function showErr(m) { const e = $("err"); e.textContent = m; e.hidden = !m; }
+async function load(file) {
+  showErr("");
+  if (!file) return;
+  if (typeof XLSX === "undefined") { showErr("Не загрузилась библиотека для чтения Excel. Проверьте интернет и обновите страницу."); return; }
+  try {
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, { type: "array" });
+    let ws = null, rows = null;
+    for (const n of wb.SheetNames) {
+      const r = XLSX.utils.sheet_to_json(wb.Sheets[n], { header: 1, raw: true, defval: null, blankrows: true });
+      if (r.some(x => x && x.some(c => COLS.pos.test(txt(c))))) { ws = n; rows = r; break; }
+    }
+    if (!rows) throw new Error("Ни на одном листе не нашла колонку «Должность».");
+    const d = build(parse(rows));
+    const rl = rows.flat().map(txt).find(s => /курс доллара на/i.test(s));
+    d.rateLabel = rl ? "на " + rl.replace(/.*курс доллара на\s*/i, "") : "данные из файла";
+    d.fileName = file.name;
+    $("names-wrap").hidden = !d.namesFilled;
+    if (!d.namesFilled) $("names").checked = false;
+    const saved = parseRate(store.get("fot-rate") || "");
+    if (saved && d.USD) applyRate(d, saved); else if (d.rate) applyRate(d, d.rate);
+    render(d);
+    $("drop").classList.add("loaded");
+    $("file-meta").innerHTML = `<b>${esc(file.name)}</b> · лист «${esc(ws)}»`;
+    $("pick").textContent = "Загрузить другой";
+    $("pick").classList.add("ghost");
+  } catch (err) {
+    showErr(err.message || "Не получилось прочитать файл.");
+  }
+}
+$("file").addEventListener("change", e => { load(e.target.files[0]); e.target.value = ""; });
+$("pick").addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("file").click(); } });
+const drop = $("drop");
+["dragenter", "dragover"].forEach(t => document.addEventListener(t, e => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach(t => document.addEventListener(t, e => { e.preventDefault(); if (t === "drop" || e.target === document.documentElement) drop.classList.remove("over"); }));
+document.addEventListener("drop", e => { const f = e.dataTransfer && e.dataTransfer.files[0]; if (f) load(f); });
+window.__fot = { parse, build };
+})();
+</script>
+
+<script>
+if ("serviceWorker" in navigator && location.protocol === "https:") {
+  navigator.serviceWorker.register("sw.js").catch(function () {});
+}
+</script>
+</body>
+</html>
