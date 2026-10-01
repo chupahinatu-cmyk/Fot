@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ЮФО</title>
 <meta name="robots" content="noindex, nofollow">
@@ -329,6 +330,13 @@ table.stmt tr.grand td { font-size: 0.78rem; }
 .share-pick input { width: 18px; height: 18px; accent-color: var(--rub); }
 .share-pick label.off { color: var(--fg-3); cursor: default; }
 .share-warn { color: var(--warn-ink); }
+
+/* paste a copied file */
+.pick-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.paste-zone { min-width: 150px; min-height: 36px; padding: 7px 12px; border-radius: 10px; border: 1px dashed var(--line); font-size: 0.82rem; color: transparent; caret-color: transparent; overflow: hidden; white-space: nowrap; max-width: 220px; cursor: text; position: relative; -webkit-user-select: text; user-select: text; }
+.paste-zone:empty::before { content: attr(data-ph); color: var(--fg-3); pointer-events: none; }
+.paste-zone:focus { outline: 2px solid var(--rub); outline-offset: 1px; border-color: transparent; }
+.paste-zone:focus:empty::before { content: "Удерживайте → «Вставить»"; }
 </style>
 
 </head>
@@ -364,16 +372,19 @@ table.stmt tr.grand td { font-size: 0.78rem; }
   <section class="drop" id="drop" aria-label="Загрузка файлов">
     <div class="drop-row">
       <div class="file-meta" id="file-meta">Файлы Excel обрабатываются только в этом браузере.</div>
-      <label class="btn ghost small" for="file" id="pick" tabindex="0" role="button">Загрузить файлы</label>
+      <div class="pick-row">
+        <label class="btn ghost small" for="file" id="pick" tabindex="0" role="button">Загрузить файлы</label>
+        <div class="paste-zone" id="paste-zone" contenteditable="true" role="textbox" aria-label="Вставить файл из буфера обмена" inputmode="none" spellcheck="false" data-ph="или вставьте файл сюда"></div>
+      </div>
       <input type="file" id="file" multiple accept=".xlsx,.xls,.xlsm,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel">
     </div>
     <ul class="status-list" id="loaded" aria-label="Загруженные отчёты"></ul>
     <div class="mem-row">
-      <label class="toggle small"><input type="checkbox" id="remember"> Запоминать файлы на этом устройстве</label>
-      <button type="button" class="link-btn" id="forget" hidden>Забыть файлы</button>
+      <label class="toggle small"><input type="checkbox" id="remember"> Запоминать отчёты на этом устройстве</label>
+      <button type="button" class="link-btn" id="forget" hidden>Забыть отчёты</button>
     </div>
     <div class="mem-note" id="mem-note"></div>
-    <div class="mem-note">Версия страницы от 01.10.2026, 17:39</div>
+    <div class="mem-note">Версия страницы от 01.10.2026, 20:21</div>
     <div class="err" id="err" hidden></div>
   </section>
 
@@ -1143,56 +1154,63 @@ document.addEventListener("click", e => {
 function showErr(m) { const e = $("err"); e.textContent = m; e.hidden = !m; }
 const SRC = {};
 const LABELS = { fot: "Люди", assets: "Активы", cash: "Средства", pnl: "PnL" };
-function loadFot(rows, fileName) {
-  const d = build(parse(rows));
-  const rl = rows.flat().map(txt).find(s => /курс доллара на/i.test(s));
-  d.rateLabel = rl ? "на " + rl.replace(/.*курс доллара на\s*/i, "") : "данные из файла";
-  d.fileName = fileName;
-  $("names-wrap").hidden = !d.namesFilled;
-  if (!d.namesFilled) $("names").checked = false;
-  const saved = parseRate(store.get("fot-rate") || "");
-  if (saved && d.USD) applyRate(d, saved); else if (d.rate) applyRate(d, d.rate);
-  render(d);
+// Each report is kept as the numbers it shows (a "record"), never as the source file.
+const clone = o => (typeof structuredClone === "function" ? structuredClone(o) : JSON.parse(JSON.stringify(o)));
+function showReport(rec) {
+  SRC[rec.key] = rec.src;
+  const d = clone(rec.data);
+  if (rec.key === "fot") {
+    const f = build(d.parsed);
+    f.rateLabel = d.rateLabel; f.fileName = rec.src.file;
+    $("names-wrap").hidden = !f.namesFilled;
+    if (!f.namesFilled) $("names").checked = false;
+    const saved = parseRate(store.get("fot-rate") || "");
+    if (saved && f.USD) applyRate(f, saved); else if (f.rate) applyRate(f, f.rate);
+    render(f);
+  } else if (rec.key === "assets") {
+    if (!(d.date instanceof Date) && d.date) d.date = new Date(d.date);
+    const saved = parseRate(store.get("assets-rate") || "");
+    if (saved && d.fileRate) applyAssetsRate(d, saved);
+    renderAssets(d);
+  } else renderStatement(rec.key, d);
 }
-// reads one workbook and fills every report it contains; returns the report keys it found
+// reads one workbook, shows every report it contains and returns their records
 function processBuffer(file, buf, problems) {
-    let wb;
-    try { wb = XLSX.read(buf, { type: "array", cellDates: true }); }
-    catch (e) { problems.push(`Не получилось прочитать «${file.name}». Проверьте, что это файл Excel.`); return []; }
-    const grids = {}; const G = n => grids[n] || (grids[n] = sheetGrid(wb.Sheets[n]));
-    const found = [];
-    // ФОТ
-    for (const n of wb.SheetNames) {
-      if (G(n).rows.some(x => x && x.some(c => COLS.pos.test(txt(c))))) {
-        try { SRC.fot = { file: file.name, sheet: n }; loadFot(G(n).rows, file.name); found.push("fot"); }
-        catch (e) { problems.push(`ФОТ в «${file.name}»: ${e.message}`); }
-        break;
-      }
+  let wb;
+  try { wb = XLSX.read(buf, { type: "array", cellDates: true }); }
+  catch (e) { problems.push(`Не получилось прочитать «${file.name}». Проверьте, что это файл Excel.`); return []; }
+  const grids = {}; const G = n => grids[n] || (grids[n] = sheetGrid(wb.Sheets[n]));
+  const recs = [];
+  const add = (key, sheet, data) => { const rec = { key, src: { file: file.name, sheet }, data, saved: Date.now() }; showReport(rec); recs.push(rec); };
+  // ФОТ
+  for (const n of wb.SheetNames) {
+    const rows = G(n).rows;
+    if (rows.some(x => x && x.some(c => COLS.pos.test(txt(c))))) {
+      try {
+        const parsed = parse(rows);
+        const rl = rows.flat().map(txt).find(s => /курс доллара на/i.test(s));
+        add("fot", n, { parsed, rateLabel: rl ? "на " + rl.replace(/.*курс доллара на\s*/i, "") : "данные из файла" });
+      } catch (e) { problems.push(`ФОТ в «${file.name}»: ${e.message}`); }
+      break;
     }
-    // Баланс активов: лист «новый», если таких несколько
-    const aSheets = wb.SheetNames.filter(n => /актив/i.test(n) && !/пассив/i.test(n) && G(n).rows.some(r => r && r.some(c => /текущая стоимость/i.test(txt(c)))));
-    const an = aSheets.find(n => /нов/i.test(n)) || aSheets[0];
-    if (an) {
-      const a = parseAssets(G(an));
-      if (a && a.sections.length) {
-        SRC.assets = { file: file.name, sheet: an };
-        const saved = parseRate(store.get("assets-rate") || "");
-        if (saved && a.fileRate) applyAssetsRate(a, saved);
-        renderAssets(a); found.push("assets");
-      }
-    }
-    // Доходы и расходы, средства и заимствования
-    for (const n of wb.SheetNames) {
-      const g = G(n);
-      if (!g.rows.slice(0, 12).some(r => r && r.some(c => HEAD_RX.test(txt(c))))) continue;
-      const title = g.rows.slice(0, 6).map(r => rowTexts(r).join(" ")).join(" ");
-      const key = /доходы и расходы/i.test(title) ? "pnl" : /средств и заимствован/i.test(title) ? "cash" : null;
-      if (!key || found.includes(key)) continue;
-      const st = parseStatement(g);
-      if (st && st.tables.length) { SRC[key] = { file: file.name, sheet: n }; renderStatement(key, st); found.push(key); }
-    }
-    if (!found.length) problems.push(`В файле «${file.name}» не нашла ни ФОТ, ни баланса активов, ни доходов и расходов, ни средств и заимствований.`);
-    return found;
+  }
+  // Баланс активов: лист «новый», если таких несколько
+  const aSheets = wb.SheetNames.filter(n => /актив/i.test(n) && !/пассив/i.test(n) && G(n).rows.some(r => r && r.some(c => /текущая стоимость/i.test(txt(c)))));
+  const an = aSheets.find(n => /нов/i.test(n)) || aSheets[0];
+  if (an) { const a = parseAssets(G(an)); if (a && a.sections.length) add("assets", an, a); }
+  // PnL, средства и заимствования
+  const got = new Set();
+  for (const n of wb.SheetNames) {
+    const g = G(n);
+    if (!g.rows.slice(0, 12).some(r => r && r.some(c => HEAD_RX.test(txt(c))))) continue;
+    const title = g.rows.slice(0, 6).map(r => rowTexts(r).join(" ")).join(" ");
+    const key = /доходы и расходы/i.test(title) ? "pnl" : /средств и заимствован/i.test(title) ? "cash" : null;
+    if (!key || got.has(key)) continue;
+    const st = parseStatement(g);
+    if (st && st.tables.length) { got.add(key); add(key, n, st); }
+  }
+  if (!recs.length) problems.push(`В файле «${file.name}» не нашла ни ФОТ, ни баланса активов, ни доходов и расходов, ни средств и заимствований.`);
+  return recs;
 }
 async function loadFiles(list) {
   showErr("");
@@ -1201,44 +1219,38 @@ async function loadFiles(list) {
   if (typeof XLSX === "undefined") { showErr("Не загрузилась библиотека для чтения Excel. Проверьте интернет и обновите страницу."); return; }
   const problems = [], got = [];
   for (const file of files) {
-    const buf = await file.arrayBuffer();
-    const found = processBuffer(file, buf, problems);
-    if (found.length && remembering()) await rememberFile(file.name, buf, found);
-    got.push(...found);
+    const recs = processBuffer(file, await file.arrayBuffer(), problems);
+    if (recs.length && remembering()) await rememberReports(recs);
+    got.push(...recs.map(r => r.key));
   }
   updateLoaded();
   showErr(problems.join(" "));
   if (got.length && !got.includes(current)) showTab(got[0]);
 }
 
-/* ---------- remembering files on this device (IndexedDB) ---------- */
+/* ---------- remembering reports on this device (IndexedDB): numbers only, never files ---------- */
 const remembering = () => store.get("remember") !== "0";
+// earlier versions kept whole Excel files here; remove them
+try { indexedDB.deleteDatabase("yufo-files"); } catch (e) {}
 function idb() {
   if (idb.p) return idb.p;
   idb.p = new Promise((res, rej) => {
-    try { const r = indexedDB.open("yufo-files", 1); r.onupgradeneeded = () => r.result.createObjectStore("files", { keyPath: "name" }); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }
+    try { const r = indexedDB.open("yufo-reports", 1); r.onupgradeneeded = () => r.result.createObjectStore("reports", { keyPath: "key" }); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }
     catch (e) { rej(e); }
   });
   return idb.p;
 }
 function idbDo(mode, fn) {
   return idb().then(db => new Promise((res, rej) => {
-    const t = db.transaction("files", mode), st = t.objectStore("files"); let out;
+    const t = db.transaction("reports", mode), st = t.objectStore("reports"); let out;
     const q = fn(st); if (q) q.onsuccess = () => { out = q.result; };
     t.oncomplete = () => res(out); t.onerror = () => rej(t.error); t.onabort = () => rej(t.error);
   }));
 }
 const idbAll = () => idbDo("readonly", st => st.getAll()).then(r => r || []);
-async function rememberFile(name, buf, keys) {
-  try {
-    for (const r of await idbAll()) {
-      if (r.name === name) continue;
-      const left = r.keys.filter(k => !keys.includes(k));
-      if (!left.length) await idbDo("readwrite", st => st.delete(r.name));
-      else if (left.length !== r.keys.length) { r.keys = left; await idbDo("readwrite", st => st.put(r)); }
-    }
-    await idbDo("readwrite", st => st.put({ name, buf, keys, saved: Date.now() }));
-  } catch (e) { /* storage unavailable: the reports still work for this visit */ }
+async function rememberReports(recs) {
+  try { for (const r of recs) await idbDo("readwrite", st => st.put(clone(r))); }
+  catch (e) { /* storage unavailable: the reports still work for this visit */ }
   updateMemory();
 }
 async function updateMemory() {
@@ -1246,16 +1258,15 @@ async function updateMemory() {
   let all = [];
   try { all = remembering() ? await idbAll() : []; } catch (e) {}
   const last = all.reduce((m, r) => Math.max(m, r.saved || 0), 0);
-  el.textContent = all.length ? `Сохранено на устройстве: ${all.length} ${all.length === 1 ? "файл" : all.length < 5 ? "файла" : "файлов"}, обновлено ${new Date(last).toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}` : "";
-  $("forget").hidden = !all.length;
+  const n = all.length;
+  el.textContent = n ? `Сохранено на устройстве: ${n} ${n === 1 ? "отчёт" : n < 5 ? "отчёта" : "отчётов"}, только цифры, без файлов Excel. Обновлено ${new Date(last).toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}` : "";
+  $("forget").hidden = !n;
 }
 async function restoreFiles() {
-  if (!remembering() || typeof XLSX === "undefined") { updateMemory(); return; }
+  if (!remembering()) { updateMemory(); return; }
   let all = [];
   try { all = await idbAll(); } catch (e) { updateMemory(); return; }
-  all.sort((a, b) => (a.saved || 0) - (b.saved || 0));
-  const problems = [];
-  for (const r of all) processBuffer({ name: r.name }, r.buf, problems);
+  for (const r of all) { try { showReport(r); } catch (e) { /* skip a record this version cannot show */ } }
   if (all.length) { updateLoaded(); if (!SRC[current]) { const k = Object.keys(LABELS).find(x => SRC[x]); if (k) showTab(k); } }
   updateMemory();
 }
@@ -1300,6 +1311,30 @@ updateLoaded();
 restoreFiles();
 
 $("file").addEventListener("change", e => { loadFiles(e.target.files); e.target.value = ""; });
+// a file copied in Files, Finder or Explorer can be pasted: into the field on a phone, or anywhere with Ctrl/Cmd+V on a computer
+function filesFromClipboard(cd) {
+  const out = [];
+  if (!cd) return out;
+  if (cd.files && cd.files.length) out.push(...cd.files);
+  else if (cd.items) for (const it of cd.items) if (it.kind === "file") { const f = it.getAsFile(); if (f) out.push(f); }
+  return out;
+}
+const XLS_RX = /\.(xlsx|xlsm|xls)$/i;
+document.addEventListener("paste", e => {
+  const files = filesFromClipboard(e.clipboardData);
+  const zone = $("paste-zone");
+  if (e.target === zone || files.length) e.preventDefault();
+  zone.textContent = "";
+  if (files.length) {
+    const xls = files.filter(f => XLS_RX.test(f.name) || /sheet|excel/i.test(f.type));
+    if (xls.length) { loadFiles(xls); zone.blur(); }
+    else showErr("В буфере обмена не Excel-файл. Скопируйте сам файл .xlsx, например в «Файлах»: удерживайте файл → «Скопировать».");
+  } else if (e.target === zone) {
+    showErr("В буфере обмена нет файла. Скопируйте сам файл .xlsx (в «Файлах»: удерживайте файл → «Скопировать»), а не его текст или ссылку.");
+  }
+});
+$("paste-zone").addEventListener("input", e => { e.target.textContent = ""; });
+$("paste-zone").addEventListener("keydown", e => { if (!(e.metaKey || e.ctrlKey) && e.key.length === 1) e.preventDefault(); });
 document.querySelectorAll('label[for="file"]').forEach(l => l.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("file").click(); } }));
 const drop = $("drop");
 ["dragenter", "dragover"].forEach(t => document.addEventListener(t, e => { e.preventDefault(); drop.classList.add("over"); }));
