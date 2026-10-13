@@ -198,10 +198,13 @@ table.stmt td.n { text-align: right; white-space: nowrap; overflow-wrap: normal;
 table.stmt td.l { min-width: 0; }
 table.stmt tr.sec td { font-weight: 700; padding-top: 16px; border-bottom: 1px solid var(--line); }
 table.stmt tr.sec:first-child td { padding-top: 8px; }
-table.stmt tr.d1 td.l { padding-left: 8px; }
-table.stmt tr.d2 td.l { padding-left: 16px; }
-table.stmt tr.d3 td.l { padding-left: 24px; }
-table.stmt tr.d2 td, table.stmt tr.d3 td { color: var(--fg-2); font-size: 0.75rem; }
+table.stmt tr.d1 td.l { padding-left: 6px; }
+table.stmt tr.d2 td.l { padding-left: 12px; }
+table.stmt tr.d3 td.l { padding-left: 18px; }
+table.stmt tr.d4 td.l { padding-left: 24px; }
+table.stmt tr.d5 td.l { padding-left: 30px; }
+table.stmt tr.d6 td.l { padding-left: 36px; }
+table.stmt tr.d2 td, table.stmt tr.d3 td, table.stmt tr.d4 td, table.stmt tr.d5 td, table.stmt tr.d6 td { color: var(--fg-2); font-size: 0.75rem; }
 table.stmt tr.grp td { background: color-mix(in srgb, var(--rub) 5%, var(--surface)); }
 table.stmt tr.tot td { font-weight: 700; background: color-mix(in srgb, var(--rub) 10%, var(--surface)); }
 table.stmt tr.res td { font-weight: 700; background: color-mix(in srgb, var(--rub) 16%, var(--surface)); border-bottom: 0; }
@@ -330,6 +333,61 @@ table.stmt tr.grand td { font-size: 0.78rem; }
 .share-pick input { width: 18px; height: 18px; accent-color: var(--rub); }
 .share-pick label.off { color: var(--fg-3); cursor: default; }
 .share-warn { color: var(--warn-ink); }
+
+
+table.stmt td.l { hyphens: auto; -webkit-hyphens: auto; overflow-wrap: normal; word-break: normal; }
+
+/* nested statement levels: style follows depth, so a line looks like its siblings whether or not it opens */
+table.stmt td.l .tg, table.stmt td.l .lf { display: grid; grid-template-columns: auto minmax(0,1fr); column-gap: 4px; align-items: start; width: 100%; text-align: left; }
+table.stmt td.l .lb { display: grid; min-width: 0; }
+table.stmt td.l .no { line-height: 1.15; }
+table.stmt tr.sec td.l .lb { display: inline-flex; gap: 6px; align-items: baseline; }
+table.stmt .chev { margin-top: 0.15em; }
+table.stmt .chev { font-size: 0.7em; color: var(--rub); transition: transform .15s; }
+table.stmt .chev.ph { visibility: hidden; }
+table.stmt .tg[aria-expanded="true"] .chev { transform: rotate(90deg); }
+table.stmt .no { font-size: 0.72em; font-weight: 500; color: var(--fg-3); white-space: nowrap; letter-spacing: -0.01em; }
+table.stmt tr.sec .no { color: var(--fg-2); font-size: 0.85em; font-weight: 700; }
+table.stmt tr[class^="d"] td { background: none; color: var(--fg); font-size: 0.8rem; font-weight: 400; }
+table.stmt tr.d1.leaf td.l, table.stmt tr.d1.grp td.l { box-shadow: inset 3px 0 0 color-mix(in srgb, var(--rub) 80%, transparent); }
+table.stmt tr.d1 td { background: color-mix(in srgb, var(--rub) 12%, var(--surface)); font-weight: 700; border-top: 1px solid color-mix(in srgb, var(--rub) 30%, var(--line)); }
+table.stmt tr.d1 td.l { font-size: 0.84rem; }
+table.stmt tr.d2 td { background: color-mix(in srgb, var(--rub) 6%, var(--surface)); font-weight: 600; }
+table.stmt tr.d2 td.l { box-shadow: inset 2px 0 0 color-mix(in srgb, var(--rub) 45%, transparent); }
+table.stmt tr.d3 td { font-weight: 600; font-size: 0.78rem; }
+table.stmt tr.d3 td.l { box-shadow: inset 2px 0 0 color-mix(in srgb, var(--rub) 22%, transparent); }
+table.stmt tr.d4 td { font-weight: 500; font-size: 0.76rem; color: var(--fg); }
+table.stmt tr.d5 td, table.stmt tr.d6 td { font-weight: 400; font-size: 0.74rem; color: var(--fg-2); }
+table.stmt tr.d1 td.l { padding-left: 4px; }
+table.stmt tr.d2 td.l { padding-left: 7px; }
+table.stmt tr.d3 td.l { padding-left: 10px; }
+table.stmt tr.d4 td.l { padding-left: 13px; }
+table.stmt tr.d5 td.l { padding-left: 16px; }
+table.stmt tr.d6 td.l { padding-left: 19px; }
+@media (prefers-reduced-motion: reduce) { table.stmt .chev { transition: none; } }
+
+table.stmt tr[class^="d"] td.n { vertical-align: bottom; }
+
+table.stmt td.l .tx { overflow-wrap: anywhere; hyphens: auto; -webkit-hyphens: auto; }
+table.stmt tr.tot td.n, table.stmt tr.res td.n, table.stmt tr.grand td.n { font-size: 0.76rem; }
+/* stand-alone lines (no sub-lines) keep their level's indent and number but stay plain */
+table.stmt tr.leaf.d1 td, table.stmt tr.leaf.d2 td { background: none; font-weight: 500; }
+table.stmt tr.leaf.d1 td.l { font-size: 0.8rem; }
+table.stmt tr.leaf.d3 td { font-weight: 500; }
+table.stmt tr[class^="d"] td.n { font-size: 0.76rem; }
+table.stmt tr.leaf td.n { font-weight: 400; }
+table.stmt tr.d1.grp td.l { font-size: 0.82rem; }
+table.stmt thead th { font-size: 0.64rem; letter-spacing: -0.01em; }
+table.stmt thead th { font-size: 0.62rem; padding-left: 1px; padding-right: 3px; }
+table.stmt tr.tot td.n, table.stmt tr.res td.n, table.stmt tr.grand td.n { font-size: 0.72rem; letter-spacing: -0.02em; }
+
+/* each sub-level steps a little further right */
+table.stmt tr.d1 td.l { padding-left: 4px; }
+table.stmt tr.d2 td.l { padding-left: 10px; }
+table.stmt tr.d3 td.l { padding-left: 16px; }
+table.stmt tr.d4 td.l { padding-left: 22px; }
+table.stmt tr.d5 td.l { padding-left: 28px; }
+table.stmt tr.d6 td.l { padding-left: 34px; }
 </style>
 
 </head>
@@ -374,7 +432,7 @@ table.stmt tr.grand td { font-size: 0.78rem; }
       <button type="button" class="link-btn" id="forget" hidden>Забыть отчёты</button>
     </div>
     <div class="mem-note" id="mem-note"></div>
-    <div class="mem-note">Версия страницы от 01.10.2026, 18:23</div>
+    <div class="mem-note">Версия страницы от 13.10.2026, 19:00</div>
     <div class="err" id="err" hidden></div>
   </section>
 
@@ -822,14 +880,18 @@ function parseStatement(g) {
   const rows = g.rows;
   const hi = rows.findIndex(r => r && r.some((c, j) => HEAD_RX.test(txt(c)) && r.some((d, k) => k > j && txt(d))));
   if (hi < 0) return null;
+  // the report's own header area ends at the last column of its header row; anything further right is a side table
+  const hr = rows[hi], hl = hr.findIndex(c => HEAD_RX.test(txt(c)));
+  let hEnd = hl; for (let j = hl + 1; j < hr.length; j++) { if (txt(hr[j])) hEnd = j; else if (hEnd > hl) break; }
   let title = ""; const sub = [];
-  for (let i = 0; i < hi; i++) { const t = rowTexts(rows[i]); if (!t.length) continue; if (!title) title = t.join(" "); else sub.push(t.join(" · ")); }
+  for (let i = 0; i < hi; i++) { const t = rowTexts((rows[i] || []).slice(0, hEnd + 1)); if (!t.length) continue; if (!title) title = t.join(" "); else sub.push(t.join(" · ")); }
   const tables = []; let tb = null;
   for (let i = hi; i < rows.length; i++) {
     const r = rows[i] || [];
     const lc = r.findIndex(c => HEAD_RX.test(txt(c)));
     if (lc >= 0 && r.some((c, j) => j > lc && txt(c))) {
-      const cols = []; r.forEach((c, j) => { if (j > lc && txt(c)) cols.push(j); });
+      const cols = [];
+      for (let j = lc + 1; j < r.length; j++) { if (txt(r[j])) cols.push(j); else if (cols.length) break; }
       const nxt = rows[i + 1] || [];
       const subRow = !txt(nxt[lc]) && cols.some(j => txt(nxt[j]) && num(nxt[j]) == null);
       const heads = cols.map(j => {
@@ -841,7 +903,9 @@ function parseStatement(g) {
       });
       let ttl = "";
       if (tb && tb.rows.length && tb.rows[tb.rows.length - 1].kind === "sec") ttl = tb.rows.pop().label;
-      tb = { title: ttl, labelHead: txt(r[lc]), lc, cols, heads, rows: [] };
+      let lv = -1;
+      for (let j = lc - 1; j >= 0 && lv < 0; j--) if (rows.slice(i, i + 40).some(x => x && /^уровень\s*\d+$/i.test(txt(x[j])))) lv = j;
+      tb = { title: ttl, labelHead: txt(r[lc]), lc, lv, cols, heads, rows: [] };
       tables.push(tb);
       if (subRow) i++;
       continue;
@@ -856,10 +920,12 @@ function parseStatement(g) {
     else if (/^\d+\.\s*/.test(label)) kind = "grand";
     else if (/^итого/i.test(label)) kind = "tot";
     else if (/^результат/i.test(label)) kind = "res";
-    const row = { i, label, vals, kind, kids: [], parent: null };
-    if (kind === "item") {
-      const j = tb.cols.find(c => num(r[c]) != null);
-      const m = j != null && cellF(g, i, j).match(/^SUM\(([^)!]*)\)$/i);
+    const lvM = tb.lv >= 0 ? txt(r[tb.lv]).match(/(\d+)/) : null;
+    const row = { i, label: label[0].toUpperCase() + label.slice(1), vals, kind, kids: [], parent: null, level: lvM ? +lvM[1] : null };
+    if (kind === "item" && tb.lv < 0) {
+      // no level column: nesting comes from SUM formulas in any of the value columns
+      let m = null;
+      for (const c of tb.cols) { m = cellF(g, i, c).match(/^SUM\(([^)!]*)\)$/i); if (m) break; }
       if (m) m[1].split(",").forEach(ref => {
         const mm = ref.trim().match(/^\$?[A-Z]+\$?(\d+)(?::\$?[A-Z]+\$?(\d+))?$/i);
         if (!mm) return;
@@ -870,9 +936,22 @@ function parseStatement(g) {
     tb.rows.push(row);
   }
   tables.forEach(t => {
-    const byI = new Map(t.rows.map(r => [r.i, r]));
-    t.rows.forEach(r => r.kids.forEach(k => { const c = byI.get(k); if (c && c.kind === "item" && c !== r) c.parent = r; }));
-    t.rows.forEach(r => { let d = 1, p = r.parent; while (p && d < 4) { d++; p = p.parent; } r.depth = d; r.isGroup = t.rows.some(c => c.parent === r); });
+    if (t.lv >= 0) {
+      // level column: a line belongs to the nearest line above it with a higher level, within its section
+      const stack = [];
+      t.rows.forEach(r => {
+        if (r.kind !== "item") { stack.length = 0; return; }
+        const L = r.level == null ? 0 : r.level;
+        while (stack.length && stack[stack.length - 1].level <= L) stack.pop();
+        r.parent = stack.length ? stack[stack.length - 1] : null;
+        stack.push({ ...r, level: L, ref: r });
+        if (r.parent) r.parent = r.parent.ref;
+      });
+    } else {
+      const byI = new Map(t.rows.map(r => [r.i, r]));
+      t.rows.forEach(r => r.kids.forEach(k => { const c = byI.get(k); if (c && c.kind === "item" && c !== r) c.parent = r; }));
+    }
+    t.rows.forEach(r => { let d = 1, p = r.parent; while (p && d < 6) { d++; p = p.parent; } r.depth = d; r.isGroup = t.rows.some(c => c.parent === r); });
     if (!t.rows.some(r => r.kind === "grand")) {
       const last = t.rows[t.rows.length - 1];
       if (last && last.kind === "res") last.kind = "grand";
@@ -923,21 +1002,38 @@ function stmtEyebrow(st) {
   const d = stmtDate(st);
   return [d ? "на " + d : "", units, ...rest].filter(Boolean).join(" · ");
 }
+// outline numbers: sections 1., 2.; lines under them 1.1, 1.1.1 … following the nesting
+function numberRows(t) {
+  const hasSec = t.rows.some(r => r.kind === "sec");
+  if (!hasSec) return;
+  let s = 0, top = 0;
+  const kids = new Map();
+  t.rows.forEach(r => {
+    if (r.kind === "sec") { s++; top = 0; r.num = s + "."; return; }
+    if (r.kind !== "item") return;
+    if (r.parent && r.parent.num) {
+      const k = (kids.get(r.parent) || 0) + 1; kids.set(r.parent, k);
+      r.num = r.parent.num + "." + k;
+    } else { top++; r.num = (s ? s + "." : "") + top; }
+  });
+}
 function stmtTableHtml(t) {
   const n = t.heads.length;
   let body = "", first = true, sec = "";
-  const tg = (open, label) => `<button type="button" class="tg" aria-expanded="${open}"><span class="chev" aria-hidden="true">▸</span><span>${esc(label)}</span></button>`;
+  const plain = l => l.replace(/^\d+(\.\d+)*\.?\s+/, "");
+  const lbl = (r) => `<span class="lb">${r.num ? `<span class="no">${r.num}</span>` : ""}<span class="tx">${esc(plain(r.label))}</span></span>`;
+  const tg = (open, r) => `<button type="button" class="tg" aria-expanded="${open}"><span class="chev" aria-hidden="true">▸</span>${lbl(r)}</button>`;
   t.rows.forEach(r => {
     if (!first && (r.kind === "sec" || r.kind === "res" || r.kind === "grand")) body += `<tr class="gap"><td colspan="${n + 1}"></td></tr>`;
     first = false;
-    if (r.kind === "sec") { sec = "s" + r.i; body += `<tr class="sec" data-id="${sec}"><td class="l" colspan="${n + 1}">${tg(true, r.label)}</td></tr>`; return; }
-    const cls = r.kind === "item" ? `d${r.depth}${r.isGroup ? " grp" : ""}` : r.kind;
+    if (r.kind === "sec") { sec = "s" + r.i; body += `<tr class="sec" data-id="${sec}"><td class="l" colspan="${n + 1}">${tg(true, r)}</td></tr>`; return; }
+    const cls = r.kind === "item" ? `d${r.depth}${r.isGroup ? " grp" : " leaf"}` : r.kind;
     const attrs = r.kind === "item" ? ` data-id="r${r.i}" data-sec="${sec}"${r.parent ? ` data-parent="r${r.parent.i}"` : ""}` : "";
-    const lab = r.isGroup ? tg(false, r.label) : esc(r.label);
+    const lab = r.kind !== "item" ? esc(r.label) : r.isGroup ? tg(false, r) : `<span class="lf"><span class="chev ph" aria-hidden="true">▸</span>${lbl(r)}</span>`;
     body += `<tr class="${cls}"${attrs}><td class="l">${lab}</td>${r.vals.map(v => `<td class="n">${v == null ? "" : f1(v) + '<span class="cur">₽</span>'}</td>`).join("")}</tr>`;
   });
   const head = `<tr><th>${esc(t.labelHead)}</th>${t.heads.map(h => `<th>${esc(h.main)}${h.small ? `<small>${esc(h.small)}</small>` : ""}</th>`).join("")}</tr>`;
-  const lw = n >= 3 ? 38 : 48;
+  const lw = n >= 3 ? 38 : 50;
   const cg = `<colgroup><col style="width:${lw}%">${t.heads.map(() => `<col style="width:${((100 - lw) / n).toFixed(2)}%">`).join("")}</colgroup>`;
   return `<div class="stmt-wrap"><table class="stmt">${cg}<thead>${head}</thead><tbody>${body}</tbody></table></div>`;
 }
