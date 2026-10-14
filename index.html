@@ -204,8 +204,6 @@ table.stmt tr.d3 td.l { padding-left: 18px; }
 table.stmt tr.d4 td.l { padding-left: 24px; }
 table.stmt tr.d5 td.l { padding-left: 30px; }
 table.stmt tr.d6 td.l { padding-left: 36px; }
-table.stmt tr.d2 td, table.stmt tr.d3 td, table.stmt tr.d4 td, table.stmt tr.d5 td, table.stmt tr.d6 td { color: var(--fg-2); font-size: 0.75rem; }
-table.stmt tr.grp td { background: color-mix(in srgb, var(--rub) 5%, var(--surface)); }
 table.stmt tr.tot td { font-weight: 700; background: color-mix(in srgb, var(--rub) 10%, var(--surface)); }
 table.stmt tr.res td { font-weight: 700; background: color-mix(in srgb, var(--rub) 16%, var(--surface)); border-bottom: 0; }
 table.stmt tr.gap td { border: 0; padding: 4px; background: none; }
@@ -348,16 +346,6 @@ table.stmt .chev.ph { visibility: hidden; }
 table.stmt .tg[aria-expanded="true"] .chev { transform: rotate(90deg); }
 table.stmt .no { font-size: 0.72em; font-weight: 500; color: var(--fg-3); white-space: nowrap; letter-spacing: -0.01em; }
 table.stmt tr.sec .no { color: var(--fg-2); font-size: 0.85em; font-weight: 700; }
-table.stmt tr[class^="d"] td { background: none; color: var(--fg); font-size: 0.8rem; font-weight: 400; }
-table.stmt tr.d1.leaf td.l, table.stmt tr.d1.grp td.l { box-shadow: inset 3px 0 0 color-mix(in srgb, var(--rub) 80%, transparent); }
-table.stmt tr.d1 td { background: color-mix(in srgb, var(--rub) 12%, var(--surface)); font-weight: 700; border-top: 1px solid color-mix(in srgb, var(--rub) 30%, var(--line)); }
-table.stmt tr.d1 td.l { font-size: 0.84rem; }
-table.stmt tr.d2 td { background: color-mix(in srgb, var(--rub) 6%, var(--surface)); font-weight: 600; }
-table.stmt tr.d2 td.l { box-shadow: inset 2px 0 0 color-mix(in srgb, var(--rub) 45%, transparent); }
-table.stmt tr.d3 td { font-weight: 600; font-size: 0.78rem; }
-table.stmt tr.d3 td.l { box-shadow: inset 2px 0 0 color-mix(in srgb, var(--rub) 22%, transparent); }
-table.stmt tr.d4 td { font-weight: 500; font-size: 0.76rem; color: var(--fg); }
-table.stmt tr.d5 td, table.stmt tr.d6 td { font-weight: 400; font-size: 0.74rem; color: var(--fg-2); }
 table.stmt tr.d1 td.l { padding-left: 4px; }
 table.stmt tr.d2 td.l { padding-left: 7px; }
 table.stmt tr.d3 td.l { padding-left: 10px; }
@@ -366,17 +354,10 @@ table.stmt tr.d5 td.l { padding-left: 16px; }
 table.stmt tr.d6 td.l { padding-left: 19px; }
 @media (prefers-reduced-motion: reduce) { table.stmt .chev { transition: none; } }
 
-table.stmt tr[class^="d"] td.n { vertical-align: bottom; }
 
 table.stmt td.l .tx { overflow-wrap: anywhere; hyphens: auto; -webkit-hyphens: auto; }
 table.stmt tr.tot td.n, table.stmt tr.res td.n, table.stmt tr.grand td.n { font-size: 0.76rem; }
 /* stand-alone lines (no sub-lines) keep their level's indent and number but stay plain */
-table.stmt tr.leaf.d1 td, table.stmt tr.leaf.d2 td { background: none; font-weight: 500; }
-table.stmt tr.leaf.d1 td.l { font-size: 0.8rem; }
-table.stmt tr.leaf.d3 td { font-weight: 500; }
-table.stmt tr[class^="d"] td.n { font-size: 0.76rem; }
-table.stmt tr.leaf td.n { font-weight: 400; }
-table.stmt tr.d1.grp td.l { font-size: 0.82rem; }
 table.stmt thead th { font-size: 0.64rem; letter-spacing: -0.01em; }
 table.stmt thead th { font-size: 0.62rem; padding-left: 1px; padding-right: 3px; }
 table.stmt tr.tot td.n, table.stmt tr.res td.n, table.stmt tr.grand td.n { font-size: 0.72rem; letter-spacing: -0.02em; }
@@ -388,6 +369,40 @@ table.stmt tr.d3 td.l { padding-left: 16px; }
 table.stmt tr.d4 td.l { padding-left: 22px; }
 table.stmt tr.d5 td.l { padding-left: 28px; }
 table.stmt tr.d6 td.l { padding-left: 34px; }
+
+/* one look per level, the same for lines that open and lines that do not */
+table.stmt tr[class^="d"] td { background: none; box-shadow: none; color: var(--fg); font-weight: 400; font-size: 0.78rem; }
+table.stmt tr[class^="d"] td.n { font-size: 0.76rem; vertical-align: bottom; }
+/* short tables (Средства): top lines plain, their sub-lines grey */
+table.stmt:not(.deep) tr.d1 td { font-size: 0.8rem; }
+table.stmt:not(.deep) tr.d2 td, table.stmt:not(.deep) tr.d3 td { color: var(--fg-3); font-size: 0.76rem; }
+/* deep tables (PnL): each level a step lighter */
+table.stmt.deep tr.d1 td { background: color-mix(in srgb, var(--rub) 12%, var(--surface)); font-weight: 700; border-top: 1px solid color-mix(in srgb, var(--rub) 30%, var(--line)); }
+table.stmt.deep tr.d1 td.l { box-shadow: inset 3px 0 0 color-mix(in srgb, var(--rub) 80%, transparent); font-size: 0.82rem; }
+table.stmt.deep tr.d2 td { background: color-mix(in srgb, var(--rub) 6%, var(--surface)); font-weight: 600; }
+table.stmt.deep tr.d2 td.l { box-shadow: inset 2px 0 0 color-mix(in srgb, var(--rub) 45%, transparent); }
+table.stmt.deep tr.d3 td { font-weight: 600; }
+table.stmt.deep tr.d3 td.l { box-shadow: inset 2px 0 0 color-mix(in srgb, var(--rub) 22%, transparent); }
+table.stmt.deep tr.d4 td { font-weight: 500; }
+table.stmt.deep tr.d5 td, table.stmt.deep tr.d6 td { color: var(--fg-2); font-size: 0.74rem; }
+
+/* assets: sections and the lines that open */
+details.asec:not(.fxd) > summary { box-shadow: inset 3px 0 0 var(--rub); margin-left: -16px; padding-left: 13px; }
+.asset-list li.has-sub { display: block; padding: 0; }
+.asset-list li.has-sub > details > summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 2px 12px; padding: 10px 8px; margin: 0 -8px; border-radius: 8px; background: color-mix(in srgb, var(--rub) 7%, var(--surface)); box-shadow: inset 2px 0 0 color-mix(in srgb, var(--rub) 55%, transparent); }
+.asset-list li.has-sub > details > summary::-webkit-details-marker { display: none; }
+.asset-list li.has-sub > details > summary:focus-visible { outline: 2px solid var(--rub); outline-offset: 1px; }
+.asset-list li.has-sub .nm { font-weight: 600; }
+.asset-list li.has-sub .nm .chev { color: var(--rub); font-size: 0.7em; margin-right: 6px; display: inline-block; transition: transform .15s; }
+.asset-list li.has-sub > details[open] > summary .chev { transform: rotate(90deg); }
+.sub-list { list-style: none; margin: 4px 0 8px; padding: 0 0 0 16px; display: grid; }
+.sub-list li { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 2px 12px; padding: 7px 0; border-top: 1px solid var(--grid); }
+.sub-list li:first-child { border-top: 0; }
+.sub-list .nm, .sub-list .val { color: var(--fg-2); font-size: 0.84rem; font-weight: 400; }
+.sub-list .meta { grid-column: 1 / -1; display: flex; gap: 4px 12px; color: var(--fg-3); font-size: 0.74rem; }
+.sub-list .meta b { color: var(--fg-3); font-weight: 500; }
+@media (prefers-reduced-motion: reduce) { .asset-list li.has-sub .nm .chev { transition: none; } }
+.asset-list li.has-sub .sub-list .nm { font-weight: 400; }
 </style>
 
 </head>
@@ -432,7 +447,7 @@ table.stmt tr.d6 td.l { padding-left: 34px; }
       <button type="button" class="link-btn" id="forget" hidden>Забыть отчёты</button>
     </div>
     <div class="mem-note" id="mem-note"></div>
-    <div class="mem-note">Версия страницы от 13.10.2026, 19:00</div>
+    <div class="mem-note">Версия страницы от 14.10.2026, 18:11</div>
     <div class="err" id="err" hidden></div>
   </section>
 
@@ -1033,9 +1048,10 @@ function stmtTableHtml(t) {
     body += `<tr class="${cls}"${attrs}><td class="l">${lab}</td>${r.vals.map(v => `<td class="n">${v == null ? "" : f1(v) + '<span class="cur">₽</span>'}</td>`).join("")}</tr>`;
   });
   const head = `<tr><th>${esc(t.labelHead)}</th>${t.heads.map(h => `<th>${esc(h.main)}${h.small ? `<small>${esc(h.small)}</small>` : ""}</th>`).join("")}</tr>`;
-  const lw = n >= 3 ? 38 : 50;
+  const lw = n >= 3 ? (t.rows.some(r => r.depth >= 3) ? 38 : 35) : 50;
   const cg = `<colgroup><col style="width:${lw}%">${t.heads.map(() => `<col style="width:${((100 - lw) / n).toFixed(2)}%">`).join("")}</colgroup>`;
-  return `<div class="stmt-wrap"><table class="stmt">${cg}<thead>${head}</thead><tbody>${body}</tbody></table></div>`;
+  const deep = t.rows.some(r => r.depth >= 3);
+  return `<div class="stmt-wrap"><table class="stmt${deep ? " deep" : ""}">${cg}<thead>${head}</thead><tbody>${body}</tbody></table></div>`;
 }
 
 function renderStatement(key, st) {
@@ -1094,7 +1110,39 @@ const RENAME = [
   [/^всего\s+/i, "Итого "], [/^asset$/i, "Актив"], [/^сумма инвестиций?$/i, "Инвестиции"]
 ];
 const clean = s => { let t = txt(s).replace(/\s*:\s*$/, "").replace(/\s+/g, " "); for (const [rx, to] of RENAME) if (rx.test(t)) t = t.replace(rx, to); return t; };
-function parseAssets(g) {
+// "Займы выданные" = 'Banks +Займы'!E170, where E170 = SUM(C170:D170) and C170 = SUM(C164:C169):
+// the lines 164..169 (name on the left, columns C..D) are its breakdown
+const SUM_RX = /^SUM\(\$?([A-Z]+)\$?(\d+):\$?([A-Z]+)\$?(\d+)\)$/i;
+function breakdown(wb, f) {
+  if (!wb || !f) return null;
+  const m = f.match(/^'?([^'!]+)'?!\$?([A-Z]+)\$?(\d+)$/);
+  if (!m) return null;
+  const ws = wb.Sheets[m[1]]; if (!ws) return null;
+  const at = (col, row) => ws[XLSX.utils.encode_cell({ c: col, r: row - 1 })];
+  const tot = ws[m[2] + m[3]];
+  const sm = tot && tot.f && tot.f.match(SUM_RX);
+  if (!sm || sm[2] !== m[3] || sm[4] !== m[3]) return null;
+  const c0 = XLSX.utils.decode_col(sm[1]), c1 = XLSX.utils.decode_col(sm[3]);
+  const first = at(c0, +m[3]), rm = first && first.f && first.f.match(SUM_RX);
+  if (!rm || rm[1] !== rm[3]) return null;
+  const r0 = Math.min(+rm[2], +rm[4]), r1 = Math.max(+rm[2], +rm[4]);
+  // column names: the nearest text above the block (a second block may share the first one's header)
+  const heads = [];
+  for (let c = c0; c <= c1; c++) {
+    let h = "";
+    for (let r = r0 - 1; r >= Math.max(1, r0 - 15) && !h; r--) { const x = at(c, r); if (x && typeof x.v === "string" && x.v.trim()) h = x.v.trim(); }
+    heads.push(h);
+  }
+  const items = [];
+  for (let r = r0; r <= r1; r++) {
+    let name = ""; for (let c = c0 - 1; c >= 0 && !name; c--) { const x = at(c, r); if (x && typeof x.v === "string" && x.v.trim()) name = x.v.trim().replace(/\s+/g, " "); }
+    const parts = []; for (let c = c0; c <= c1; c++) { const x = at(c, r); parts.push(x && typeof x.v === "number" ? x.v : 0); }
+    const v = parts.reduce((a, b) => a + b, 0);
+    if (name && Math.abs(v) > 1e-9) items.push({ name: name[0].toUpperCase() + name.slice(1), v, parts });
+  }
+  return items.length ? { heads, items } : null;
+}
+function parseAssets(g, wb) {
   const rows = g.rows;
   const hdr = []; rows.forEach((r, i) => { if (r && r.some(c => /текущая стоимость/i.test(txt(c)))) hdr.push(i); });
   if (!hdr.length) return null;
@@ -1129,7 +1177,9 @@ function parseAssets(g) {
     if (/^итого/i.test(label)) { sec.total = { label: clean(label), v: get("val") }; continue; }
     if (!label) { const last = sec.items[sec.items.length - 1]; if (last) last.usd = { v: get("val"), inv: get("inv"), yl: get("yl") }; continue; }
     const m = label.match(/^(.*?)\s*\((\d[\d.,]*\s*%)\)\s*$/);
-    sec.items.push({ name: clean(m ? m[1] : label), share: m ? m[2] : "", v: get("val"), inv: get("inv"), buy: cols.buy != null ? txt(r[cols.buy]) : "", yl: get("yl") });
+    const it = { name: clean(m ? m[1] : label), share: m ? m[2] : "", v: get("val"), inv: get("inv"), buy: cols.buy != null ? txt(r[cols.buy]) : "", yl: get("yl") };
+    if (cols.val != null) { const bd = breakdown(wb, cellF(g, i, cols.val)); if (bd) it.sub = bd; }
+    sec.items.push(it);
   }
   const checks = [];
   sections.forEach(s => {
@@ -1194,8 +1244,15 @@ function renderAssets(a) {
       if (it.inv != null) meta.push(`<span>Инвестиции <b>${fInt(it.inv)} ₽</b>${it.usd && it.usd.inv != null ? ` · ${fUsd(it.usd.inv)}` : ""}</span>`);
       if (it.buy) meta.push(`<span>${esc(s.buyHead || "Покупка / кап. вложения")} <b>${esc(it.buy)}</b></span>`);
       if (it.yl != null) meta.push(`<span>Доходность <b class="yl ${it.yl < 0 ? "neg" : "pos"}">${fPct(it.yl)}</b>${it.usd && it.usd.yl != null ? ` · <b class="yl ${it.usd.yl < 0 ? "neg" : "pos"}">${fPct(it.usd.yl)}</b> в $` : ""}</span>`);
-      return `<li><span class="nm">${esc(it.name)}${it.share ? ` <span class="share">(${esc(it.share)})</span>` : ""}</span>
-        <span class="val">${it.v != null ? fInt(it.v) + " ₽" : "—"}${it.usd && it.usd.v != null ? `<small>${fUsd(it.usd.v)}</small>` : ""}</span>${meta.length ? `<span class="meta">${meta.join("")}</span>` : ""}</li>`;
+      const nameH = `${esc(it.name)}${it.share ? ` <span class="share">(${esc(it.share)})</span>` : ""}`;
+      const valH = `<span class="val">${it.v != null ? fInt(it.v) + " ₽" : "—"}${it.usd && it.usd.v != null ? `<small>${fUsd(it.usd.v)}</small>` : ""}</span>`;
+      if (it.sub) {
+        const f2 = v => (Math.round(v * 10) / 10 < 0 ? MINUS : "") + Math.abs(v).toLocaleString("ru-RU", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+        const subs = it.sub.items.map(x => `<li><span class="nm">${esc(x.name)}</span><span class="val">${f2(x.v)} ₽</span>${x.parts.length > 1 ? `<span class="meta">${x.parts.map((p, k) => `<span>${esc(it.sub.heads[k] || "")} <b>${f2(p)}</b></span>`).join("")}</span>` : ""}</li>`).join("");
+        return `<li class="has-sub"><details class="sub"><summary><span class="nm"><span class="chev" aria-hidden="true">▸</span>${nameH}</span>${valH}${meta.length ? `<span class="meta">${meta.join("")}</span>` : ""}</summary><ul class="sub-list">${subs}</ul></details></li>`;
+      }
+      return `<li><span class="nm">${nameH}</span>
+        ${valH}${meta.length ? `<span class="meta">${meta.join("")}</span>` : ""}</li>`;
     }).join("");
     html += `<details class="panel asec" id="as-${si}"><summary><span class="as-name"><span class="chev" aria-hidden="true">▸</span>${esc(s.title)}</span><span class="as-sum">${s.total ? fInt(s.total.v) + " ₽" : ""}</span><span class="as-meta">${s.items.length} ${(n => { const x = n % 10, y = n % 100; return x === 1 && y !== 11 ? "позиция" : x >= 2 && x <= 4 && (y < 12 || y > 14) ? "позиции" : "позиций"; })(s.items.length)}</span></summary><ul class="asset-list">${items}</ul>${s.total ? `<div class="sec-total"><span>${esc(s.total.label)}</span><span>${fInt(s.total.v)} ₽</span></div>` : ""}</details>`;
   });
@@ -1283,7 +1340,7 @@ function processBuffer(file, buf, problems) {
   // Баланс активов: лист «новый», если таких несколько
   const aSheets = wb.SheetNames.filter(n => /актив/i.test(n) && !/пассив/i.test(n) && G(n).rows.some(r => r && r.some(c => /текущая стоимость/i.test(txt(c)))));
   const an = aSheets.find(n => /нов/i.test(n)) || aSheets[0];
-  if (an) { const a = parseAssets(G(an)); if (a && a.sections.length) add("assets", an, a); }
+  if (an) { const a = parseAssets(G(an), wb); if (a && a.sections.length) add("assets", an, a); }
   // PnL, средства и заимствования
   const got = new Set();
   for (const n of wb.SheetNames) {
